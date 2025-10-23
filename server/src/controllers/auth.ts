@@ -26,15 +26,23 @@ export default class AuthController {
 
   public async googleCallback(req: Request, res: Response) {
     // Handle Google OAuth callback logic here
-    const clientUrl = process.env.CLIENT_URL;
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
 
-    console.log(req);
+    console.log("=== OAuth Callback Debug ===");
+    console.log("User authenticated:", !!req.user);
+    console.log("Client URL:", clientUrl);
+    console.log("Session ID:", req.sessionID);
+
     if (req.user) {
       // Authentication successful
-      res.redirect(`${clientUrl}/dsa`);
+      const redirectUrl = `${clientUrl}/dsa`;
+      console.log("Redirecting to:", redirectUrl);
+      res.redirect(redirectUrl);
     } else {
       // Authentication failed
-      res.redirect(`${clientUrl}/login?error=auth_failed`);
+      const errorUrl = `${clientUrl}/login?error=auth_failed`;
+      console.log("Authentication failed, redirecting to:", errorUrl);
+      res.redirect(errorUrl);
     }
   }
 }
