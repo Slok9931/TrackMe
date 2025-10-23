@@ -8,6 +8,12 @@ export default class AuthController {
 
   public async checkAuth(req: Request, res: Response) {
     // Debug endpoint to check authentication status
+    console.log("=== Auth Check Debug ===");
+    console.log("Session ID:", req.sessionID);
+    console.log("User in request:", !!req.user);
+    console.log("Session data:", req.session);
+    console.log("Cookies:", req.headers.cookie);
+    
     if (req.user) {
       res.json({ authenticated: true, user: req.user });
     } else {

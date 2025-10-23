@@ -30,11 +30,17 @@ const App: React.FC = () => {
 
   const checkAuthStatus = async () => {
     try {
-      const response = await axios.get(`${config.API_BASE_URL}${config.API_ENDPOINTS.USER.PROFILE}`, {
+      // Try auth check endpoint first for debugging
+      const authResponse = await axios.get(`${config.API_BASE_URL}/auth/check`, {
         withCredentials: true
       })
-      setUser(response.data)
+      console.log('Auth check response:', authResponse.data)
+      
+      if (authResponse.data.authenticated) {
+        setUser(authResponse.data.user)
+      }
     } catch (error) {
+      console.log('Auth check failed:', error)
       console.log('User not authenticated')
     } finally {
       setLoading(false)

@@ -4,13 +4,22 @@ import User from "../models/User";
 export default class UserController {
   async getProfile(req: Request, res: Response) {
     try {
+      console.log("=== User Profile Debug ===");
+      console.log("Session ID:", req.sessionID);
+      console.log("User in request:", !!req.user);
+      console.log("Session data:", req.session);
+      console.log("Cookies:", req.headers.cookie);
+      
       if (!req.user) {
+        console.log("No user found in request - returning 401");
         return res.status(401).json({ message: "Not authenticated" });
       }
 
+      console.log("User found, returning profile");
       // req.user should already be the complete user object from passport
       res.json(req.user);
     } catch (error) {
+      console.log("Error in getProfile:", error);
       res.status(500).json({ message: "Server error", error });
     }
   }
