@@ -26,11 +26,11 @@ export default class AuthController {
 
   public async googleCallback(req: Request, res: Response) {
     // Handle Google OAuth callback logic here
-    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
-    
+    const clientUrl = process.env.CLIENT_URL;
+
     if (req.user) {
       // Authentication successful
-      res.redirect(`${clientUrl}/dashboard`);
+      res.redirect(`${clientUrl}/dsa`);
     } else {
       // Authentication failed
       res.redirect(`${clientUrl}/login?error=auth_failed`);

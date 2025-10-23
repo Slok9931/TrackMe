@@ -7,7 +7,7 @@ export default class UserController {
       if (!req.user) {
         return res.status(401).json({ message: "Not authenticated" });
       }
-      
+
       // req.user should already be the complete user object from passport
       res.json(req.user);
     } catch (error) {
