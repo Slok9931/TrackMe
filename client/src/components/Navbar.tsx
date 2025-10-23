@@ -23,13 +23,18 @@ const Navbar: React.FC<NavbarProps> = ({ user, setUser }) => {
 
     const handleLogout = async () => {
         try {
+            // Call logout endpoint to clear server-side session/token
             await apiClient.post(config.API_ENDPOINTS.AUTH.LOGOUT)
-            // Clear the token from localStorage
-            localStorage.removeItem('authToken')
-            setUser(null)
-            navigate('/')
         } catch (error) {
             console.error('Logout error:', error)
+            // Continue with logout even if server call fails
+        } finally {
+            // Clear the token from localStorage
+            localStorage.removeItem('authToken')
+            // Clear user state
+            setUser(null)
+            // Navigate to login page
+            navigate('/')
         }
     }
 

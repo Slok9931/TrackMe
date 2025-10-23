@@ -56,7 +56,7 @@ class DSAApiService {
    * Add/fetch problem from LeetCode API
    */
   static async addProblem(titleSlug: string): Promise<{ problem: Problem }> {
-    const response = await apiClient.post('/problems/add-problem', {
+    const response = await apiClient.post("/problems/add-problem", {
       titleSlug,
     });
     return response.data;
@@ -71,10 +71,7 @@ class DSAApiService {
     notes?: string;
     date_solved?: string;
   }): Promise<{ userProblem: UserProblem }> {
-    const response = await apiClient.post(
-      '/problems/user-problems',
-      data
-    );
+    const response = await apiClient.post("/problems/user-problems", data);
     return response.data;
   }
 
@@ -92,7 +89,7 @@ class DSAApiService {
     userProblems: UserProblem[];
     pagination: PaginationInfo;
   }> {
-    const response = await apiClient.get('/problems/user-problems', {
+    const response = await apiClient.get("/problems/user-problems", {
       params,
     });
     return response.data;
@@ -120,9 +117,7 @@ class DSAApiService {
    * Delete user problem
    */
   static async deleteUserProblem(userProblemId: string): Promise<void> {
-    await apiClient.delete(
-      `/problems/user-problems/${userProblemId}`
-    );
+    await apiClient.delete(`/problems/user-problems/${userProblemId}`);
   }
 
   /**
@@ -171,7 +166,7 @@ class DSAApiService {
    * Get user statistics
    */
   static async getUserStats(): Promise<{ stats: UserStats }> {
-    const response = await apiClient.get('/problems/stats');
+    const response = await apiClient.get("/problems/stats");
     return response.data;
   }
 }

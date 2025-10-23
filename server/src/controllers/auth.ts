@@ -27,10 +27,21 @@ export default class AuthController {
   }
 
   public async logout(req: Request, res: Response) {
+    // Handle token-based logout
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.substring(7);
+      deleteToken(token); // Clear the token from store
+      console.log("Token cleared:", token);
+    }
+
+    // Handle session-based logout
     req.logout((err) => {
       if (err) {
+        console.log("Session logout error:", err);
         return res.status(500).json({ message: "Logout failed" });
       }
+      console.log("Session logout successful");
       res.json({ message: "Logged out successfully" });
     });
   }

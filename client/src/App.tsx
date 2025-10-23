@@ -72,8 +72,12 @@ const App: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+          <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse animation-delay-200"></div>
+          <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse animation-delay-400"></div>
+        </div>
       </div>
     )
   }

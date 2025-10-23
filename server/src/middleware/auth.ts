@@ -14,10 +14,10 @@ export const isAuthenticated = (
 
   // Check for token-based authentication
   const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
+  if (authHeader && authHeader.startsWith("Bearer ")) {
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     const user = getUserFromToken(token);
-    
+
     if (user) {
       console.log("User authenticated via token");
       // Attach user to request object for compatibility

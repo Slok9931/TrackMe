@@ -1,9 +1,8 @@
-import axios from 'axios';
+import axios from "axios";
 
 // Configuration for API endpoints
 export const config = {
-  API_BASE_URL:
-    import.meta.env.VITE_API_BASE_URL,
+  API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
   API_ENDPOINTS: {
     AUTH: {
       GOOGLE: "/auth/google",
@@ -28,7 +27,7 @@ export const apiClient = axios.create({
 // Add request interceptor to include token in Authorization header
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem("authToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -45,10 +44,10 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token might be expired, clear it
-      localStorage.removeItem('authToken');
+      localStorage.removeItem("authToken");
       // Optionally redirect to login
-      if (window.location.pathname !== '/') {
-        window.location.href = '/';
+      if (window.location.pathname !== "/") {
+        window.location.href = "/";
       }
     }
     return Promise.reject(error);
