@@ -30,11 +30,37 @@ const App: React.FC = () => {
 
   const checkAuthStatus = async () => {
     try {
-      // Try auth check endpoint first for debugging
+      // Check for token in URL (from OAuth redirect)
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      
+      if (token) {
+        // Store token and clear URL
+        localStorage.setItem('authToken', token);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      
+      // Try token-based auth first
+      const storedToken = localStorage.getItem('authToken');
+      if (storedToken) {
+        try {
+          const tokenResponse = await axios.get(`${config.API_BASE_URL}/auth/token/${storedToken}`);
+          console.log('Token auth response:', tokenResponse.data);
+          if (tokenResponse.data.authenticated) {
+            setUser(tokenResponse.data.user);
+            return;
+          }
+        } catch (tokenError) {
+          console.log('Token auth failed, clearing token');
+          localStorage.removeItem('authToken');
+        }
+      }
+      
+      // Fallback to session-based auth
       const authResponse = await axios.get(`${config.API_BASE_URL}/auth/check`, {
         withCredentials: true
       })
-      console.log('Auth check response:', authResponse.data)
+      console.log('Session auth response:', authResponse.data)
       
       if (authResponse.data.authenticated) {
         setUser(authResponse.data.user)

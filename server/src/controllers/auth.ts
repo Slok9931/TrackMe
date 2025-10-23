@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { generateToken, getUserFromToken, deleteToken } from "../utils/tokenStore";
 
 export default class AuthController {
   public async login(req: Request, res: Response) {
@@ -38,10 +39,24 @@ export default class AuthController {
     console.log("User authenticated:", !!req.user);
     console.log("Client URL:", clientUrl);
     console.log("Session ID:", req.sessionID);
+    console.log("Session after auth:", req.session);
 
     if (req.user) {
-      // Authentication successful
-      const redirectUrl = `${clientUrl}/dsa`;
+      // Create a temporary token as fallback for cross-origin issues
+      const token = generateToken(req.user);
+      console.log("Generated token:", token);
+      
+      // Force save the session
+      req.session.save((err) => {
+        if (err) {
+          console.log("Session save error:", err);
+        } else {
+          console.log("Session saved successfully");
+        }
+      });
+      
+      // Authentication successful - redirect with token for cross-origin workaround
+      const redirectUrl = `${clientUrl}/dsa?token=${token}`;
       console.log("Redirecting to:", redirectUrl);
       res.redirect(redirectUrl);
     } else {

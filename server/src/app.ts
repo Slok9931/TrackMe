@@ -37,14 +37,26 @@ app.use(
     secret: process.env.SESSION_SECRET || "fallback-secret",
     resave: false,
     saveUninitialized: false,
+    name: 'trackme.session', // Custom session name
     cookie: {
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      // Don't set domain - let it default to the current domain
     },
   })
 );
+// Debug middleware to log cookies
+app.use((req, res, next) => {
+  console.log("=== Request Debug ===");
+  console.log("Path:", req.path);
+  console.log("Session ID:", req.sessionID);
+  console.log("Raw Cookies:", req.headers.cookie);
+  console.log("User in session:", !!req.user);
+  next();
+});
+
 app.use(passport.initialize());
 app.use(passport.session());
 
