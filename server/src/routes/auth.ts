@@ -25,11 +25,11 @@ router.get("/token/:token", (req, res) => {
   const { token } = req.params;
   console.log("=== Token Auth ===");
   console.log("Token received:", token);
-  
+
   try {
     const user = require("../utils/tokenStore").getUserFromToken(token);
     console.log("User from token:", !!user);
-    
+
     if (user) {
       res.json({ authenticated: true, user });
     } else {
@@ -51,7 +51,7 @@ router.get("/session-test", (req, res) => {
     sessionId: req.sessionID,
     hasSession: !!req.session,
     sessionData: req.session,
-    cookies: req.headers.cookie
+    cookies: req.headers.cookie,
   });
 });
 

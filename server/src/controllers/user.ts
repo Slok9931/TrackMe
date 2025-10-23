@@ -9,7 +9,7 @@ export default class UserController {
       console.log("User in request:", !!req.user);
       console.log("Session data:", req.session);
       console.log("Cookies:", req.headers.cookie);
-      
+
       if (!req.user) {
         console.log("No user found in request - returning 401");
         return res.status(401).json({ message: "Not authenticated" });

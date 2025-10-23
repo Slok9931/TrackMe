@@ -37,7 +37,7 @@ app.use(
     secret: process.env.SESSION_SECRET || "fallback-secret",
     resave: false,
     saveUninitialized: false,
-    name: 'trackme.session', // Custom session name
+    name: "trackme.session", // Custom session name
     cookie: {
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,

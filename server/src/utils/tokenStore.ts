@@ -3,7 +3,8 @@
 const tokenStore: Map<string, any> = new Map();
 
 export const generateToken = (user: any): string => {
-  const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
+  const token =
+    Math.random().toString(36).substring(2) + Date.now().toString(36);
   tokenStore.set(token, user);
   // Set expiration
   setTimeout(() => {

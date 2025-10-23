@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import axios from 'axios'
-import { config } from './config/api'
+import { apiClient } from './config/api'
 import LoginPage from './components/LoginPage.tsx'
 import ProfilePage from './components/ProfilePage.tsx'
 import DSADashboard from './components/DSADashboard.tsx'
@@ -31,37 +30,35 @@ const App: React.FC = () => {
   const checkAuthStatus = async () => {
     try {
       // Check for token in URL (from OAuth redirect)
-      const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('token');
-      
+      const urlParams = new URLSearchParams(window.location.search)
+      const token = urlParams.get('token')
+
       if (token) {
         // Store token and clear URL
-        localStorage.setItem('authToken', token);
-        window.history.replaceState({}, document.title, window.location.pathname);
+        localStorage.setItem('authToken', token)
+        window.history.replaceState({}, document.title, window.location.pathname)
       }
-      
+
       // Try token-based auth first
-      const storedToken = localStorage.getItem('authToken');
+      const storedToken = localStorage.getItem('authToken')
       if (storedToken) {
         try {
-          const tokenResponse = await axios.get(`${config.API_BASE_URL}/auth/token/${storedToken}`);
-          console.log('Token auth response:', tokenResponse.data);
+          const tokenResponse = await apiClient.get(`/auth/token/${storedToken}`)
+          console.log('Token auth response:', tokenResponse.data)
           if (tokenResponse.data.authenticated) {
-            setUser(tokenResponse.data.user);
-            return;
+            setUser(tokenResponse.data.user)
+            return
           }
         } catch (tokenError) {
-          console.log('Token auth failed, clearing token');
-          localStorage.removeItem('authToken');
+          console.log('Token auth failed, clearing token')
+          localStorage.removeItem('authToken')
         }
       }
-      
+
       // Fallback to session-based auth
-      const authResponse = await axios.get(`${config.API_BASE_URL}/auth/check`, {
-        withCredentials: true
-      })
+      const authResponse = await apiClient.get('/auth/check')
       console.log('Session auth response:', authResponse.data)
-      
+
       if (authResponse.data.authenticated) {
         setUser(authResponse.data.user)
       }

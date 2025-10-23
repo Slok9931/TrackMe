@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import axios from 'axios'
-import { config } from '../config/api'
+import { apiClient, config } from '../config/api'
 
 interface User {
     _id: string
@@ -24,9 +23,9 @@ const Navbar: React.FC<NavbarProps> = ({ user, setUser }) => {
 
     const handleLogout = async () => {
         try {
-            await axios.post(`${config.API_BASE_URL}${config.API_ENDPOINTS.AUTH.LOGOUT}`, {}, {
-                withCredentials: true
-            })
+            await apiClient.post(config.API_ENDPOINTS.AUTH.LOGOUT)
+            // Clear the token from localStorage
+            localStorage.removeItem('authToken')
             setUser(null)
             navigate('/')
         } catch (error) {

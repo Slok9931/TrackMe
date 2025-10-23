@@ -1,7 +1,4 @@
-import axios from "axios";
-import { config } from "../config/api";
-
-const API_BASE_URL = config.API_BASE_URL;
+import { apiClient } from "../config/api";
 
 // Types
 export interface Problem {
@@ -54,15 +51,12 @@ export interface PaginationInfo {
   itemsPerPage: number;
 }
 
-// Configure axios to send credentials
-axios.defaults.withCredentials = true;
-
 class DSAApiService {
   /**
    * Add/fetch problem from LeetCode API
    */
   static async addProblem(titleSlug: string): Promise<{ problem: Problem }> {
-    const response = await axios.post(`${API_BASE_URL}/problems/add-problem`, {
+    const response = await apiClient.post('/problems/add-problem', {
       titleSlug,
     });
     return response.data;
@@ -77,8 +71,8 @@ class DSAApiService {
     notes?: string;
     date_solved?: string;
   }): Promise<{ userProblem: UserProblem }> {
-    const response = await axios.post(
-      `${API_BASE_URL}/problems/user-problems`,
+    const response = await apiClient.post(
+      '/problems/user-problems',
       data
     );
     return response.data;
@@ -98,7 +92,7 @@ class DSAApiService {
     userProblems: UserProblem[];
     pagination: PaginationInfo;
   }> {
-    const response = await axios.get(`${API_BASE_URL}/problems/user-problems`, {
+    const response = await apiClient.get('/problems/user-problems', {
       params,
     });
     return response.data;
@@ -115,8 +109,8 @@ class DSAApiService {
       problem_link?: string;
     }
   ): Promise<{ userProblem: UserProblem }> {
-    const response = await axios.put(
-      `${API_BASE_URL}/problems/user-problems/${userProblemId}`,
+    const response = await apiClient.put(
+      `/problems/user-problems/${userProblemId}`,
       data
     );
     return response.data;
@@ -126,8 +120,8 @@ class DSAApiService {
    * Delete user problem
    */
   static async deleteUserProblem(userProblemId: string): Promise<void> {
-    await axios.delete(
-      `${API_BASE_URL}/problems/user-problems/${userProblemId}`
+    await apiClient.delete(
+      `/problems/user-problems/${userProblemId}`
     );
   }
 
@@ -138,8 +132,8 @@ class DSAApiService {
     userProblemId: string,
     revisionNotes: string
   ): Promise<{ userProblem: UserProblem }> {
-    const response = await axios.post(
-      `${API_BASE_URL}/problems/user-problems/${userProblemId}/revisions`,
+    const response = await apiClient.post(
+      `/problems/user-problems/${userProblemId}/revisions`,
       { revision_notes: revisionNotes }
     );
     return response.data;
@@ -153,8 +147,8 @@ class DSAApiService {
     revisionNo: number,
     revisionNotes: string
   ): Promise<{ userProblem: UserProblem }> {
-    const response = await axios.put(
-      `${API_BASE_URL}/problems/user-problems/${userProblemId}/revisions/${revisionNo}`,
+    const response = await apiClient.put(
+      `/problems/user-problems/${userProblemId}/revisions/${revisionNo}`,
       { revision_notes: revisionNotes }
     );
     return response.data;
@@ -167,8 +161,8 @@ class DSAApiService {
     userProblemId: string,
     revisionNo: number
   ): Promise<{ userProblem: UserProblem }> {
-    const response = await axios.delete(
-      `${API_BASE_URL}/problems/user-problems/${userProblemId}/revisions/${revisionNo}`
+    const response = await apiClient.delete(
+      `/problems/user-problems/${userProblemId}/revisions/${revisionNo}`
     );
     return response.data;
   }
@@ -177,7 +171,7 @@ class DSAApiService {
    * Get user statistics
    */
   static async getUserStats(): Promise<{ stats: UserStats }> {
-    const response = await axios.get(`${API_BASE_URL}/problems/stats`);
+    const response = await apiClient.get('/problems/stats');
     return response.data;
   }
 }
