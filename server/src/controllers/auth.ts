@@ -28,6 +28,7 @@ export default class AuthController {
     // Handle Google OAuth callback logic here
     const clientUrl = process.env.CLIENT_URL;
 
+    console.log(req);
     if (req.user) {
       // Authentication successful
       res.redirect(`${clientUrl}/dsa`);
