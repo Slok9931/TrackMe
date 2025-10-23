@@ -6,6 +6,15 @@ export default class AuthController {
     res.json({ message: "Login endpoint" });
   }
 
+  public async checkAuth(req: Request, res: Response) {
+    // Debug endpoint to check authentication status
+    if (req.user) {
+      res.json({ authenticated: true, user: req.user });
+    } else {
+      res.json({ authenticated: false, user: null });
+    }
+  }
+
   public async logout(req: Request, res: Response) {
     req.logout((err) => {
       if (err) {
@@ -17,6 +26,14 @@ export default class AuthController {
 
   public async googleCallback(req: Request, res: Response) {
     // Handle Google OAuth callback logic here
-    res.redirect("http://localhost:5173/"); // Redirect to frontend homepage, React will handle routing
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    
+    if (req.user) {
+      // Authentication successful
+      res.redirect(`${clientUrl}/dashboard`);
+    } else {
+      // Authentication failed
+      res.redirect(`${clientUrl}/login?error=auth_failed`);
+    }
   }
 }

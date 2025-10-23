@@ -4,12 +4,12 @@ import User from "../models/User";
 export default class UserController {
   async getProfile(req: Request, res: Response) {
     try {
-      const userId = req.user?._id; // Assuming user ID is stored in req.user
-      const user = await User.findById(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
       }
-      res.json(user);
+      
+      // req.user should already be the complete user object from passport
+      res.json(req.user);
     } catch (error) {
       res.status(500).json({ message: "Server error", error });
     }

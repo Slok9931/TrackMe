@@ -18,5 +18,6 @@ router.get(
 );
 
 router.get("/logout", authController.logout);
+router.get("/check", authController.checkAuth);
 
 export default router;
