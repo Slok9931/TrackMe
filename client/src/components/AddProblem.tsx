@@ -223,10 +223,28 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
 }
 
 const AddProblem: React.FC = () => {
+    // Basic template for notes
+    const notesTemplate = `
+## 💡 Approach
+- **Initial thoughts:**
+- **Algorithm/Strategy:**
+- **Time Complexity:** O()
+- **Space Complexity:** O()
+
+## 📝 Implementation
+\`\`\`cpp
+
+\`\`\`
+
+## 🔍 Key Insights
+- **What did you learn?**
+- **Edge cases to consider:**
+- **Common mistakes to avoid:**`
+
     const [formData, setFormData] = useState({
         titleSlug: '',
         status: 'Todo' as 'Todo' | 'Completed',
-        notes: '',
+        notes: notesTemplate,
         date_solved: ''
     })
     const [loading, setLoading] = useState(false)
@@ -317,7 +335,7 @@ const AddProblem: React.FC = () => {
             setFormData({
                 titleSlug: '',
                 status: 'Todo',
-                notes: '',
+                notes: notesTemplate,
                 date_solved: ''
             })
 
