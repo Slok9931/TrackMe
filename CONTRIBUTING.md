@@ -13,6 +13,7 @@ Thank you for your interest in contributing to TrackMe! This document provides g
 ## Development Setup
 
 ### Client Setup
+
 ```bash
 cd client
 npm install
@@ -20,6 +21,7 @@ npm run dev
 ```
 
 ### Server Setup
+
 ```bash
 cd server
 npm install
@@ -37,6 +39,7 @@ npm run dev
 ## Commit Message Guidelines
 
 Use conventional commit format:
+
 - `feat:` for new features
 - `fix:` for bug fixes
 - `docs:` for documentation changes
