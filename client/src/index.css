@@ -1,0 +1,44 @@
+@import './App.css';
+
+/* Custom Textarea Styling */
+.notes-editor {
+  font-family: 'JetBrains Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.notes-editor::placeholder {
+  color: #9ca3af;
+  line-height: 1.6;
+}
+
+/* Markdown Preview Styling */
+.prose code {
+  font-weight: 600;
+}
+
+.prose pre {
+  overflow-x: auto;
+}
+
+.prose blockquote {
+  font-style: italic;
+  border-left-width: 4px;
+}
+
+/* Scrollbar Styling for Preview */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
