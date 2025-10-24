@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Problem, { IProblem } from "../models/Problem";
 import UserProblem, { IUserProblem } from "../models/UserProblem";
 import LeetCodeService from "../services/leetcodeService";
+import GFGService from "../services/gfgService";
 
 // Extended Request interface to include user
 interface AuthenticatedRequest extends Request {
@@ -14,40 +15,69 @@ interface AuthenticatedRequest extends Request {
 }
 
 /**
- * Add or fetch a problem by titleSlug
- * This will fetch from LeetCode API if not in database, otherwise return existing
+ * Add or fetch a problem by titleSlug and platform
+ * This will fetch from the respective API if not in database, otherwise return existing
  */
 export const addProblem = async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
   try {
-    const { titleSlug } = req.body;
+    const { titleSlug, platform = "leetcode" } = req.body;
 
     if (!titleSlug) {
       res.status(400).json({ error: "titleSlug is required" });
       return;
     }
 
+    if (!["leetcode", "gfg"].includes(platform)) {
+      res
+        .status(400)
+        .json({ error: "platform must be either 'leetcode' or 'gfg'" });
+      return;
+    }
+
     // Check if problem already exists in database
-    let problem = await Problem.findOne({ titleSlug });
+    let problem = await Problem.findOne({ titleSlug, platform });
 
     if (!problem) {
-      // Fetch from LeetCode API
-      const leetcodeData = await LeetCodeService.fetchProblemDetails(titleSlug);
+      let problemData;
 
-      // Create new problem record
-      problem = new Problem({
-        questionId: leetcodeData.questionId,
-        title: leetcodeData.title,
-        titleSlug: leetcodeData.titleSlug,
-        content: LeetCodeService.cleanContent(leetcodeData.content),
-        difficulty: leetcodeData.difficulty,
-        topicTags: leetcodeData.topicTags,
-        problemUrl: LeetCodeService.generateProblemUrl(leetcodeData.titleSlug),
-      });
+      if (platform === "leetcode") {
+        // Fetch from LeetCode API
+        problemData = await LeetCodeService.fetchProblemDetails(titleSlug);
 
-      await problem.save();
+        // Create new problem record
+        problem = new Problem({
+          questionId: problemData.questionId,
+          title: problemData.title,
+          titleSlug: problemData.titleSlug,
+          platform: "leetcode",
+          content: LeetCodeService.cleanContent(problemData.content),
+          difficulty: problemData.difficulty,
+          topicTags: problemData.topicTags,
+          problemUrl: LeetCodeService.generateProblemUrl(problemData.titleSlug),
+        });
+      } else if (platform === "gfg") {
+        // Fetch from GFG API
+        problemData = await GFGService.fetchProblemDetails(titleSlug);
+
+        // Create new problem record
+        problem = new Problem({
+          questionId: problemData.questionId,
+          title: problemData.title,
+          titleSlug: problemData.titleSlug,
+          platform: "gfg",
+          content: problemData.content,
+          difficulty: problemData.difficulty,
+          topicTags: problemData.topicTags,
+          problemUrl: GFGService.generateProblemUrl(problemData.titleSlug),
+        });
+      }
+
+      if (problem) {
+        await problem.save();
+      }
     }
 
     res.status(200).json({
@@ -71,7 +101,13 @@ export const addUserProblem = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { titleSlug, status = "Todo", notes = "", date_solved } = req.body;
+    const {
+      titleSlug,
+      platform = "leetcode",
+      status = "Todo",
+      notes = "",
+      date_solved,
+    } = req.body;
     const userId = req.user?._id;
 
     if (!userId) {
@@ -84,6 +120,13 @@ export const addUserProblem = async (
       return;
     }
 
+    if (!["leetcode", "gfg"].includes(platform)) {
+      res
+        .status(400)
+        .json({ error: "platform must be either 'leetcode' or 'gfg'" });
+      return;
+    }
+
     // Validate date_solved requirement for Completed status
     if (status === "Completed" && !date_solved) {
       res
@@ -93,22 +136,48 @@ export const addUserProblem = async (
     }
 
     // First ensure problem exists in database
-    let problem = await Problem.findOne({ titleSlug });
+    let problem = await Problem.findOne({ titleSlug, platform });
     if (!problem) {
-      // Fetch from LeetCode API
-      const leetcodeData = await LeetCodeService.fetchProblemDetails(titleSlug);
+      let problemData;
 
-      problem = new Problem({
-        questionId: leetcodeData.questionId,
-        title: leetcodeData.title,
-        titleSlug: leetcodeData.titleSlug,
-        content: LeetCodeService.cleanContent(leetcodeData.content),
-        difficulty: leetcodeData.difficulty,
-        topicTags: leetcodeData.topicTags,
-        problemUrl: LeetCodeService.generateProblemUrl(leetcodeData.titleSlug),
-      });
+      if (platform === "leetcode") {
+        // Fetch from LeetCode API
+        problemData = await LeetCodeService.fetchProblemDetails(titleSlug);
 
-      await problem.save();
+        problem = new Problem({
+          questionId: problemData.questionId,
+          title: problemData.title,
+          titleSlug: problemData.titleSlug,
+          platform: "leetcode",
+          content: LeetCodeService.cleanContent(problemData.content),
+          difficulty: problemData.difficulty,
+          topicTags: problemData.topicTags,
+          problemUrl: LeetCodeService.generateProblemUrl(problemData.titleSlug),
+        });
+      } else if (platform === "gfg") {
+        // Fetch from GFG API
+        problemData = await GFGService.fetchProblemDetails(titleSlug);
+
+        problem = new Problem({
+          questionId: problemData.questionId,
+          title: problemData.title,
+          titleSlug: problemData.titleSlug,
+          platform: "gfg",
+          content: problemData.content,
+          difficulty: problemData.difficulty,
+          topicTags: problemData.topicTags,
+          problemUrl: GFGService.generateProblemUrl(problemData.titleSlug),
+        });
+      }
+
+      if (problem) {
+        await problem.save();
+      }
+    }
+
+    if (!problem) {
+      res.status(500).json({ error: "Failed to fetch or create problem" });
+      return;
     }
 
     // Check if user already has this problem
@@ -145,7 +214,11 @@ export const addUserProblem = async (
     await userProblem.save();
 
     // Populate problem details for response
-    await userProblem.populate("problemId");
+    await userProblem.populate({
+      path: "problemId",
+      select:
+        "questionId title titleSlug difficulty platform topicTags problemUrl content",
+    });
 
     res.status(201).json({
       message: "Problem added to tracking list successfully",
@@ -172,6 +245,7 @@ export const getUserProblems = async (
     const {
       status,
       difficulty,
+      platform,
       search,
       dateFrom,
       dateTo,
@@ -211,6 +285,7 @@ export const getUserProblems = async (
     // Build population match criteria for Problem collection
     const populateMatch: any = {};
     if (difficulty) populateMatch.difficulty = difficulty;
+    if (platform) populateMatch.platform = platform;
     if (search) {
       populateMatch.title = { $regex: search, $options: "i" };
     }
@@ -222,7 +297,7 @@ export const getUserProblems = async (
         match:
           Object.keys(populateMatch).length > 0 ? populateMatch : undefined,
         select:
-          "questionId title titleSlug difficulty topicTags problemUrl content",
+          "questionId title titleSlug difficulty platform topicTags problemUrl content",
       })
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -299,7 +374,11 @@ export const updateUserProblem = async (
     const userProblem = await UserProblem.findOne({
       _id: userProblemId,
       userId,
-    }).populate("problemId");
+    }).populate({
+      path: "problemId",
+      select:
+        "questionId title titleSlug difficulty platform topicTags problemUrl content",
+    });
 
     if (!userProblem) {
       res.status(404).json({ error: "User problem not found" });
@@ -395,7 +474,11 @@ export const addRevision = async (
     const userProblem = await UserProblem.findOne({
       _id: userProblemId,
       userId,
-    }).populate("problemId");
+    }).populate({
+      path: "problemId",
+      select:
+        "questionId title titleSlug difficulty platform topicTags problemUrl content",
+    });
 
     if (!userProblem) {
       res.status(404).json({ error: "User problem not found" });
@@ -454,7 +537,11 @@ export const updateRevision = async (
         Number(revisionNo),
         revision_notes
       );
-      await userProblem.populate("problemId");
+      await userProblem.populate({
+        path: "problemId",
+        select:
+          "questionId title titleSlug difficulty platform topicTags problemUrl content",
+      });
 
       res.status(200).json({
         message: "Revision updated successfully",
@@ -499,7 +586,11 @@ export const deleteRevision = async (
     }
 
     await (userProblem as any).deleteRevision(Number(revisionNo));
-    await userProblem.populate("problemId");
+    await userProblem.populate({
+      path: "problemId",
+      select:
+        "questionId title titleSlug difficulty platform topicTags problemUrl content",
+    });
 
     res.status(200).json({
       message: "Revision deleted successfully",

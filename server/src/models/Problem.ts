@@ -13,6 +13,7 @@ export interface IProblem extends Document {
   titleSlug: string;
   content: string;
   difficulty: "Easy" | "Medium" | "Hard";
+  platform: "leetcode" | "gfg";
   topicTags: ITopicTag[];
   problemUrl: string;
   createdAt: Date;
@@ -47,7 +48,12 @@ const ProblemSchema = new Schema<IProblem>(
     titleSlug: {
       type: String,
       required: true,
-      unique: true,
+      index: true,
+    },
+    platform: {
+      type: String,
+      enum: ["leetcode", "gfg"],
+      required: true,
       index: true,
     },
     content: {
@@ -71,8 +77,12 @@ const ProblemSchema = new Schema<IProblem>(
   }
 );
 
+// Compound unique index for titleSlug + platform combination
+ProblemSchema.index({ titleSlug: 1, platform: 1 }, { unique: true });
+
 // Index for efficient searches
 ProblemSchema.index({ title: "text", titleSlug: 1 });
 ProblemSchema.index({ difficulty: 1, "topicTags.slug": 1 });
+ProblemSchema.index({ platform: 1 });
 
 export default mongoose.model<IProblem>("Problem", ProblemSchema);

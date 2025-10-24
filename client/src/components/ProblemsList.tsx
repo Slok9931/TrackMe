@@ -236,6 +236,7 @@ const ProblemsList: React.FC = () => {
     // Filters
     const [statusFilter, setStatusFilter] = useState<'All' | 'Todo' | 'Completed'>('All')
     const [difficultyFilter, setDifficultyFilter] = useState<'All' | 'Easy' | 'Medium' | 'Hard'>('All')
+    const [platformFilter, setPlatformFilter] = useState<'All' | 'leetcode' | 'gfg'>('All')
     const [searchQuery, setSearchQuery] = useState('')
     const [dateFromFilter, setDateFromFilter] = useState('')
     const [dateToFilter, setDateToFilter] = useState('')
@@ -254,7 +255,7 @@ const ProblemsList: React.FC = () => {
 
     useEffect(() => {
         fetchProblems()
-    }, [statusFilter, difficultyFilter, searchQuery, dateFromFilter, dateToFilter, currentPage])
+    }, [statusFilter, difficultyFilter, platformFilter, searchQuery, dateFromFilter, dateToFilter, currentPage])
 
     const fetchProblems = async () => {
         try {
@@ -268,6 +269,7 @@ const ProblemsList: React.FC = () => {
 
             if (statusFilter !== 'All') params.status = statusFilter
             if (difficultyFilter !== 'All') params.difficulty = difficultyFilter
+            if (platformFilter !== 'All') params.platform = platformFilter
             if (searchQuery.trim()) params.search = searchQuery.trim()
             if (dateFromFilter) params.dateFrom = dateFromFilter
             if (dateToFilter) params.dateTo = dateToFilter
@@ -507,6 +509,7 @@ const ProblemsList: React.FC = () => {
                             onClick={() => {
                                 setStatusFilter('All')
                                 setDifficultyFilter('All')
+                                setPlatformFilter('All')
                                 setSearchQuery('')
                                 setDateFromFilter('')
                                 setDateToFilter('')
@@ -710,7 +713,7 @@ const ProblemsList: React.FC = () => {
                         </div>
                         <h3 className="text-xl font-medium text-gray-900 mb-2">No problems found</h3>
                         <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                            {statusFilter !== 'All' || difficultyFilter !== 'All'
+                            {statusFilter !== 'All' || difficultyFilter !== 'All' || platformFilter !== 'All'
                                 ? 'Try adjusting your filters or add some problems to get started.'
                                 : 'Start tracking your DSA journey by adding your first problem.'
                             }
@@ -758,7 +761,10 @@ const ProblemsList: React.FC = () => {
                                             <tr key={userProblem._id} className="hover:bg-gray-50 transition-colors">
                                                 <td className="px-6 py-4">
                                                     <div className="flex flex-col">
-                                                        <div className="text-sm font-medium text-gray-900 mb-1">
+                                                        <div className="text-sm font-medium text-gray-900 mb-1 flex items-center">
+                                                            <span className="mr-2">
+                                                                {problem.platform === 'gfg' ? '🟢' : '🟠'}
+                                                            </span>
                                                             {problem.title}
                                                         </div>
                                                         {problem.topicTags && problem.topicTags.length > 0 && (

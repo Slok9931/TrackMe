@@ -130,6 +130,45 @@ const customStyles = `
 .problem-content h1 { font-size: 1.5rem !important; }
 .problem-content h2 { font-size: 1.25rem !important; }
 .problem-content h3 { font-size: 1.125rem !important; }
+
+/* GFG-specific content styling */
+.problem-content span[style*="font-size: 14pt"] {
+    font-size: 1rem !important;
+}
+
+.problem-content span[style*="color"] {
+    color: inherit !important;
+}
+
+.problem-content strong,
+.problem-content b {
+    font-weight: 600 !important;
+    color: #111827 !important;
+}
+
+.problem-content sup {
+    font-size: 0.75em !important;
+    vertical-align: super !important;
+}
+
+.problem-content sub {
+    font-size: 0.75em !important;
+    vertical-align: sub !important;
+}
+
+/* GFG Examples and Input/Output formatting */
+.problem-content pre,
+.problem-content div[style*="background"] {
+    background-color: #f9fafb !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 0.375rem !important;
+    padding: 1rem !important;
+    margin: 1rem 0 !important;
+    color: #374151 !important;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+    font-size: 0.875rem !important;
+    line-height: 1.6 !important;
+}
 `
 
 const ProblemDetail: React.FC = () => {
@@ -357,6 +396,7 @@ const ProblemDetail: React.FC = () => {
     }
 
     const problem = userProblem.problemId as any
+    console.log(problem)
 
     return (
         <div className="bg-gray-50">
@@ -397,7 +437,12 @@ const ProblemDetail: React.FC = () => {
                                 {/* Problem Info */}
                                 <div className="flex items-center justify-between space-x-3 mb-6">
                                     <div className="flex items-center space-x-3">
-                                        <h1 className="text-2xl font-semibold text-gray-900">{problem.title}</h1>
+                                        <div className="flex items-center space-x-2">
+                                            <span className="text-xl">
+                                                {problem.platform === 'leetcode' ? '🔴' : '🟢'}
+                                            </span>
+                                            <h1 className="text-2xl font-semibold text-gray-900">{problem.title}</h1>
+                                        </div>
                                         <span className={`px-2 py-1 text-xs font-medium rounded ${getDifficultyColor(problem.difficulty)}`}>
                                             {problem.difficulty}
                                         </span>
@@ -438,7 +483,7 @@ const ProblemDetail: React.FC = () => {
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-blue-600 hover:text-blue-700 text-xs font-medium"
-                                                title="Open in LeetCode"
+                                                title={`Open in ${problem.platform === 'leetcode' ? 'LeetCode' : 'GeeksforGeeks'}`}
                                             >
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />

@@ -62,9 +62,15 @@ const UserProblemSchema = new Schema<IUserProblem>(
       required: true,
       validate: {
         validator: function (v: string) {
-          return /^https:\/\/leetcode\.com\/problems\/[a-z0-9-]+\/?$/.test(v);
+          // Validate for both LeetCode and GeeksforGeeks URL formats
+          const leetcodePattern =
+            /^https:\/\/leetcode\.com\/problems\/[a-z0-9-]+\/?$/;
+          const gfgPattern =
+            /^https:\/\/www\.geeksforgeeks\.org\/problems\/[a-z0-9-]+(?:\/\d+)?$/;
+          return leetcodePattern.test(v) || gfgPattern.test(v);
         },
-        message: "Invalid LeetCode problem URL format",
+        message:
+          "Invalid problem URL format. Must be a valid LeetCode or GeeksforGeeks URL",
       },
     },
     status: {

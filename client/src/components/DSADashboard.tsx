@@ -3,6 +3,189 @@ import { Link } from 'react-router-dom'
 import DSAApiService from '../services/dsaApi'
 import type { UserProblem } from '../services/dsaApi'
 
+// Custom Date Picker Component
+const CustomDatePicker: React.FC<{
+    value: string
+    onChange: (value: string) => void
+    placeholder: string
+}> = ({ value, onChange, placeholder }) => {
+    const [isOpen, setIsOpen] = useState(false)
+    const [currentMonth, setCurrentMonth] = useState(new Date())
+    const [selectedDate, setSelectedDate] = useState(value ? new Date(value) : null)
+
+    const formatDate = (date: Date) => {
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        })
+    }
+
+    const getDaysInMonth = (date: Date) => {
+        const year = date.getFullYear()
+        const month = date.getMonth()
+        const firstDay = new Date(year, month, 1)
+        const lastDay = new Date(year, month + 1, 0)
+        const daysInMonth = lastDay.getDate()
+        const startingDayOfWeek = firstDay.getDay()
+
+        const days = []
+
+        // Add empty cells for days before the first day of the month
+        for (let i = 0; i < startingDayOfWeek; i++) {
+            days.push(null)
+        }
+
+        // Add days of the month
+        for (let day = 1; day <= daysInMonth; day++) {
+            days.push(new Date(year, month, day))
+        }
+
+        return days
+    }
+
+    const isToday = (date: Date) => {
+        const today = new Date()
+        return date.toDateString() === today.toDateString()
+    }
+
+    const isSameDay = (date1: Date | null, date2: Date | null) => {
+        if (!date1 || !date2) return false
+        return date1.toDateString() === date2.toDateString()
+    }
+
+    const handleDateSelect = (date: Date) => {
+        setSelectedDate(date)
+        // Format date as YYYY-MM-DD in local timezone to avoid timezone offset issues
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        onChange(`${year}-${month}-${day}`)
+        setIsOpen(false)
+    }
+
+    const clearDate = () => {
+        setSelectedDate(null)
+        onChange('')
+        setIsOpen(false)
+    }
+
+    // Update selectedDate when value prop changes
+    useEffect(() => {
+        if (value && value !== selectedDate?.toISOString().split('T')[0]) {
+            setSelectedDate(new Date(value))
+        } else if (!value) {
+            setSelectedDate(null)
+        }
+    }, [value])
+
+    return (
+        <div className="relative">
+            <button
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full flex items-center justify-between px-4 py-3 border border-gray-200 rounded-xl hover:border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all bg-white"
+            >
+                <span className="flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className={selectedDate ? 'text-gray-900' : 'text-gray-500'}>
+                        {selectedDate ? formatDate(selectedDate) : placeholder}
+                    </span>
+                </span>
+                <svg className={`w-5 h-5 transition-transform text-gray-400 ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+
+            {isOpen && (
+                <>
+                    <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
+                    <div className="absolute z-20 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg p-4 min-w-80">
+                        {/* Calendar Header */}
+                        <div className="flex items-center justify-between mb-4">
+                            <button
+                                type="button"
+                                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
+                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            <h3 className="text-lg font-semibold text-gray-900">
+                                {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
+                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Day labels */}
+                        <div className="grid grid-cols-7 gap-1 mb-3">
+                            {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+                                <div key={day} className="text-sm font-medium text-gray-500 text-center py-2">
+                                    {day}
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Calendar days */}
+                        <div className="grid grid-cols-7 gap-1 mb-4">
+                            {getDaysInMonth(currentMonth).map((date, index) => (
+                                <div key={index} className="aspect-square">
+                                    {date && (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDateSelect(date)}
+                                            className={`w-full h-full text-sm rounded-lg hover:bg-gray-100 transition-colors ${isSameDay(date, selectedDate)
+                                                ? 'bg-green-500 text-white hover:bg-green-600'
+                                                : isToday(date)
+                                                    ? 'bg-blue-100 text-blue-700 font-semibold'
+                                                    : 'text-gray-700'
+                                                }`}
+                                        >
+                                            {date.getDate()}
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Action buttons */}
+                        <div className="flex justify-between pt-3 border-t border-gray-200">
+                            <button
+                                type="button"
+                                onClick={clearDate}
+                                className="text-sm text-gray-500 hover:text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                                Clear
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const today = new Date()
+                                    handleDateSelect(today)
+                                }}
+                                className="text-sm text-green-600 hover:text-green-700 px-3 py-1 rounded-lg hover:bg-green-50 transition-colors font-medium"
+                            >
+                                Today
+                            </button>
+                        </div>
+                    </div>
+                </>
+            )}
+        </div>
+    )
+}
+
 interface User {
     _id: string
     name: string
@@ -197,24 +380,22 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                 ))}
             </div>
             {selectedDateRange === 'custom' && (
-                <div className="bg-gray-50 rounded-xl p-4">
-                    <div className="flex flex-col sm:flex-row gap-4">
+                <div className="bg-gray-50 rounded-xl p-6">
+                    <div className="flex flex-col sm:flex-row gap-6">
                         <div className="flex-1">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">📅 Start Date</label>
-                            <input
-                                type="date"
+                            <label className="block text-sm font-semibold text-gray-700 mb-3">📅 Start Date</label>
+                            <CustomDatePicker
                                 value={customStartDate}
-                                onChange={(e) => setCustomStartDate(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                                onChange={setCustomStartDate}
+                                placeholder="Select start date"
                             />
                         </div>
                         <div className="flex-1">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">📅 End Date</label>
-                            <input
-                                type="date"
+                            <label className="block text-sm font-semibold text-gray-700 mb-3">📅 End Date</label>
+                            <CustomDatePicker
                                 value={customEndDate}
-                                onChange={(e) => setCustomEndDate(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                                onChange={setCustomEndDate}
+                                placeholder="Select end date"
                             />
                         </div>
                     </div>

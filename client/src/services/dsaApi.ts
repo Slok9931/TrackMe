@@ -8,6 +8,7 @@ export interface Problem {
   titleSlug: string;
   content: string;
   difficulty: "Easy" | "Medium" | "Hard";
+  platform: "leetcode" | "gfg";
   topicTags: Array<{
     name: string;
     slug: string;

@@ -243,6 +243,7 @@ const AddProblem: React.FC = () => {
 
     const [formData, setFormData] = useState({
         titleSlug: '',
+        platform: 'leetcode' as 'leetcode' | 'gfg',
         status: 'Todo' as 'Todo' | 'Completed',
         notes: notesTemplate,
         date_solved: ''
@@ -254,26 +255,42 @@ const AddProblem: React.FC = () => {
     const navigate = useNavigate()
     const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-    const extractTitleSlugFromUrl = (url: string): string | null => {
+    const extractTitleSlugFromUrl = (url: string): { titleSlug: string; platform: 'leetcode' | 'gfg' } | null => {
         try {
-            const regex = /https:\/\/leetcode\.com\/problems\/([a-z0-9-]+)\/?/
-            const match = url.match(regex)
-            return match ? match[1] : null
+            // LeetCode URL pattern
+            const leetcodeRegex = /https:\/\/leetcode\.com\/problems\/([a-z0-9-]+)\/?/
+            const leetcodeMatch = url.match(leetcodeRegex)
+            if (leetcodeMatch) {
+                return { titleSlug: leetcodeMatch[1], platform: 'leetcode' }
+            }
+
+            // GFG URL pattern
+            const gfgRegex = /https:\/\/www\.geeksforgeeks\.org\/problems\/([a-z0-9-]+)(?:\/\d+)?/
+            const gfgMatch = url.match(gfgRegex)
+            if (gfgMatch) {
+                return { titleSlug: gfgMatch[1], platform: 'gfg' }
+            }
+
+            return null
         } catch {
             return null
         }
     }
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target
 
         if (name === 'titleSlug') {
-            // If it looks like a URL, extract the titleSlug
+            // If it looks like a URL, extract the titleSlug and platform
             const extracted = extractTitleSlugFromUrl(value)
             if (extracted) {
-                setFormData(prev => ({ ...prev, [name]: extracted }))
+                setFormData(prev => ({
+                    ...prev,
+                    titleSlug: extracted.titleSlug,
+                    platform: extracted.platform
+                }))
             } else {
-                setFormData(prev => ({ ...prev, [name]: value }))
+                setFormData(prev => ({ ...prev, titleSlug: value }))
             }
         } else {
             setFormData(prev => ({ ...prev, [name]: value }))
@@ -320,6 +337,7 @@ const AddProblem: React.FC = () => {
         try {
             const submitData: any = {
                 titleSlug: formData.titleSlug.trim(),
+                platform: formData.platform,
                 status: formData.status,
                 notes: formData.notes || ''
             }
@@ -334,6 +352,7 @@ const AddProblem: React.FC = () => {
             setSuccess(true)
             setFormData({
                 titleSlug: '',
+                platform: 'leetcode',
                 status: 'Todo',
                 notes: notesTemplate,
                 date_solved: ''
@@ -366,7 +385,7 @@ const AddProblem: React.FC = () => {
                     <div className="mb-6">
                         <h2 className="text-2xl font-bold text-gray-900 mb-2">Add New Problem</h2>
                         <p className="text-gray-600">
-                            Add a problem to your tracking list using the LeetCode problem URL.
+                            Add a problem to your tracking list using the problem URL.
                         </p>
                     </div>
 
@@ -407,12 +426,16 @@ const AddProblem: React.FC = () => {
                                     name="titleSlug"
                                     value={formData.titleSlug}
                                     onChange={handleInputChange}
-                                    placeholder="e.g., set-matrix-zeroes or https://leetcode.com/problems/set-matrix-zeroes/"
+                                    placeholder={
+                                        formData.platform === 'leetcode'
+                                            ? "e.g., https://leetcode.com/problems/set-matrix-zeroes/"
+                                            : "e.g., count-subarray-with-given-xor or https://www.geeksforgeeks.org/problems/count-subarray-with-given-xor/1"
+                                    }
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-2 focus:border-green-500 focus:outline-none"
                                     required
                                 />
                                 <p className="mt-1 text-sm text-gray-500">
-                                    You can paste the full LeetCode URL
+                                    You can paste the full URL from LeetCode or GeeksforGeeks
                                 </p>
                             </div>
 
