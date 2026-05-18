@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import axios from "axios";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "text-bison-001";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-1.5-flash";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 export const generateSummary = async (req: Request, res: Response) => {
@@ -18,27 +18,38 @@ export const generateSummary = async (req: Request, res: Response) => {
 
     // Prefer Gemini if key available
     if (GEMINI_API_KEY) {
-      const url = `https://generativeai.googleapis.com/v1beta2/models/${GEMINI_MODEL}:generate`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`;
       const body = {
-        prompt: {
-          text: prompt,
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: prompt }],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.2,
+          maxOutputTokens: 512,
         },
-        maxOutputTokens: 512,
-        temperature: 0.2,
-      } as any;
+      };
 
       const response = await axios.post(url, body, {
         headers: {
-          Authorization: `Bearer ${GEMINI_API_KEY}`,
           "Content-Type": "application/json",
         },
+        timeout: 30000,
       });
 
-      // Attempt to extract text from likely Gemini response shapes
-      const generated =
-        response.data?.candidates?.[0]?.content || response.data?.output?.[0]?.content || response.data?.output?.[0]?.generatedText || JSON.stringify(response.data);
+      const generatedText =
+        response.data?.candidates?.[0]?.content?.parts
+          ?.map((part: { text?: string }) => part.text || "")
+          .join("")
+          .trim() || "";
 
-      return res.json({ summary: generated });
+      if (!generatedText) {
+        throw new Error("Gemini response did not contain any generated text");
+      }
+
+      return res.json({ summary: generatedText });
     }
 
     // Fallback to OpenAI if provided (OpenAI-compatible API)
@@ -65,8 +76,17 @@ export const generateSummary = async (req: Request, res: Response) => {
 
     return res.status(500).json({ error: "No AI provider configured on the server" });
   } catch (error: any) {
+    const providerMessage =
+      error?.response?.data?.error?.message ||
+      error?.response?.data?.message ||
+      error?.message ||
+      "Unknown AI error";
+
     console.error("AI generate error:", error?.response?.data || error.message || error);
-    return res.status(500).json({ error: "Failed to generate summary" });
+    return res.status(500).json({
+      error: "Failed to generate summary",
+      details: providerMessage,
+    });
   }
 };
 

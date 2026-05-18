@@ -612,8 +612,10 @@ const ProblemDetail: React.FC = () => {
                                                         // Insert AI generated summary at the top of notes so user can edit it
                                                         setEditData(prev => ({ ...prev, notes: `${summary}\n\n${prev.notes}` }))
                                                     } catch (err) {
+                                                        const message = err instanceof Error ? err.message : 'Failed to generate AI summary'
+                                                        const responseMessage = (err as any)?.response?.data?.details || (err as any)?.response?.data?.error
                                                         console.error('AI generate failed', err)
-                                                        alert('Failed to generate AI summary')
+                                                        alert(responseMessage ? `${message}: ${responseMessage}` : message)
                                                     } finally {
                                                         setAiLoading(false)
                                                     }
