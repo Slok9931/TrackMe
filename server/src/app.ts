@@ -9,6 +9,7 @@ import { initializePassport } from "./config/passport";
 import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
 import problemRoutes from "./routes/problem";
+import aiRoutes from "./routes/ai";
 import { errorHandler } from "./middleware/errorHandler";
 
 config();
@@ -70,6 +71,7 @@ initializePassport();
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/problems", problemRoutes);
+app.use("/api/ai", aiRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

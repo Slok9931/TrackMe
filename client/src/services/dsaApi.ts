@@ -170,6 +170,14 @@ class DSAApiService {
     const response = await apiClient.get("/problems/stats");
     return response.data;
   }
+
+  /**
+   * Generate AI summary for an implementation using server-side AI endpoint
+   */
+  static async generateAiSummary(implementationCode: string, notes?: string): Promise<{ summary: string }> {
+    const response = await apiClient.post('/ai/summarize', { implementationCode, notes });
+    return response.data;
+  }
 }
 
 export default DSAApiService;

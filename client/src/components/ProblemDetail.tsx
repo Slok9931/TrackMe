@@ -183,6 +183,8 @@ const ProblemDetail: React.FC = () => {
         status: 'Todo' as 'Todo' | 'Completed',
         notes: ''
     })
+    const [implementationCode, setImplementationCode] = useState('')
+    const [aiLoading, setAiLoading] = useState(false)
 
     // Resizable panel states
     const [panelWidths, setPanelWidths] = useState([33.33, 33.33, 33.34])
@@ -595,6 +597,33 @@ const ProblemDetail: React.FC = () => {
                                                 {editData.status === 'Completed' ? '✅' : '📋'}
                                             </span>
                                         </div>
+                                        <div className="flex items-center space-x-2">
+                                            <button
+                                                onClick={async () => {
+                                                    // Trigger AI generation using implementationCode
+                                                    if (!implementationCode || implementationCode.trim().length === 0) {
+                                                        alert('Please paste your implementation in the Implementation box before generating the summary.')
+                                                        return
+                                                    }
+                                                    try {
+                                                        setAiLoading(true)
+                                                        const resp = await DSAApiService.generateAiSummary(implementationCode, editData.notes)
+                                                        const summary = resp.summary || ''
+                                                        // Insert AI generated summary at the top of notes so user can edit it
+                                                        setEditData(prev => ({ ...prev, notes: `${summary}\n\n${prev.notes}` }))
+                                                    } catch (err) {
+                                                        console.error('AI generate failed', err)
+                                                        alert('Failed to generate AI summary')
+                                                    } finally {
+                                                        setAiLoading(false)
+                                                    }
+                                                }}
+                                                className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                                                title="Generate AI Summary"
+                                            >
+                                                {aiLoading ? 'Generating...' : 'Generate AI Summary'}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -736,6 +765,16 @@ const ProblemDetail: React.FC = () => {
 
                             {/* Editor Content */}
                             <div className="flex-1 overflow-y-auto">
+                                <div className="p-4 border-b border-gray-100">
+                                    <label className="text-xs font-medium text-gray-700">Implementation (paste your code here)</label>
+                                    <textarea
+                                        id="implementation-textarea"
+                                        value={implementationCode}
+                                        onChange={(e) => setImplementationCode(e.target.value)}
+                                        placeholder="Paste your implementation code here (e.g., Python/JS function)"
+                                        className="w-full h-40 mt-2 p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none font-mono text-sm leading-relaxed border rounded-md bg-white"
+                                    />
+                                </div>
                                 <textarea
                                     id="notes-textarea"
                                     value={editData.notes}
