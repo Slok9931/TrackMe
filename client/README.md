@@ -1,73 +1,280 @@
-# React + TypeScript + Vite
+# TrackMe Client - React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Modern frontend for the TrackMe DSA problem tracking platform with AI-powered code analysis and real-time markdown preview.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Authentication
+- 🔐 **Google OAuth Integration** - Seamless single sign-on
+- 👤 **User Profiles** - Secure user session management
+- 🔒 **Protected Routes** - Role-based access control
 
-## React Compiler
+### Problem Management
+- ✅ **Add Problems** - Support for LeetCode and GeeksforGeeks URLs
+- 📋 **Problem List** - View all tracked problems with filtering
+- 🔍 **Problem Details** - Comprehensive problem view with notes and implementation
+- 📊 **Status Tracking** - Mark problems as Todo or Completed
+- 📅 **Date Tracking** - Record when problems were solved
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🤖 AI-Powered Code Analysis
+- **Implementation Code Editor** - Multi-line textarea with indentation preservation
+- **Generate AI Summaries** - One-click code analysis using Gemini API
+- **Structured Analysis** with 6 sections:
+  - 🎯 **Approach** - Algorithm strategy and design patterns
+  - ⏱️ **Complexity** - Time and space complexity breakdown
+  - 🔧 **Algorithm** - Step-by-step implementation walkthrough
+  - ⚠️ **Mistakes (if any)** - Potential issues and edge cases
+  - ✨ **Optimisation** - Performance improvement suggestions
+  - 💡 **Key Insights** - Learning points and takeaways
+- **Smart Formatting** - Bullet points with bold-highlighted terms
+- **Code Preservation** - Implementation code appended with preserved indentation
 
-## Expanding the ESLint configuration
+### Code Editor & Notes
+- **Tab-Based Interface**:
+  - Implementation Tab - Paste full code with formatting preserved
+  - Notes Tab - Edit and enhance AI-generated summaries
+- **Live Preview** - Real-time Markdown rendering on the right
+- **Markdown Toolbar** - Quick formatting buttons:
+  - **B**old, *I*talic, `code`, Code Blocks, Lists, Headings
+- **Auto-Tab Switch** - Switches to Notes tab after AI generation
+- **Large Editor** - Up to 10,000 character notes support
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Dashboard & Analytics
+- 📊 **Statistics Dashboard** - Overview of problem-solving progress
+- 📈 **Progress Charts** - Visual representation of completion rates
+- 🎯 **Difficulty Breakdown** - Easy, Medium, Hard problem distribution
+- 📱 **Responsive Design** - Works seamlessly on desktop, tablet, and mobile
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### User Interface
+- 🎨 **Tailwind CSS Styling** - Clean, modern design
+- ⚡ **Vite HMR** - Instant hot module reloading during development
+- 🔄 **React Router Navigation** - Smooth page transitions
+- 📱 **Mobile Responsive** - Optimized for all screen sizes
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Tech Stack
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **React 19.1.1** - Modern UI library
+- **TypeScript** - Type-safe development
+- **Vite** - Lightning-fast build tool with HMR
+- **Tailwind CSS** - Utility-first CSS framework
+- **React Router** - Client-side routing
+- **Axios** - HTTP client for API calls
+- **Marked** - Markdown parsing and rendering
+
+## Getting Started
+
+### Prerequisites
+- Node.js v18 or higher
+- npm or yarn
+
+### Installation
+
+1. Navigate to client directory:
+```bash
+cd client
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+2. Install dependencies:
+```bash
+npm install
 ```
+
+3. Configure environment (optional):
+```bash
+# Copy .env.development if you want to customize API URL
+# Default: http://localhost:3000/api
+```
+
+### Development Server
+
+Start the development server with hot reload:
+```bash
+npm run dev
+```
+
+Browser will open at `http://localhost:5173`
+
+### Build for Production
+
+Build optimized bundle:
+```bash
+npm run build
+```
+
+Output: `dist/` directory (ready for deployment)
+
+### Preview Production Build
+
+Preview the production build locally:
+```bash
+npm run preview
+```
+
+## Project Structure
+
+```
+src/
+├── main.tsx               # Entry point
+├── index.css             # Global styles
+├── App.tsx               # Main app component
+├── assets/               # Static assets
+├── components/
+│   ├── LoginPage.tsx     # OAuth login
+│   ├── Navbar.tsx        # Navigation bar
+│   ├── DSADashboard.tsx  # Main dashboard
+│   ├── ProblemsList.tsx  # Problems list view
+│   ├── ProblemDetail.tsx # Single problem detail
+│   ├── AddProblem.tsx    # Add problem form
+│   ├── ProfilePage.tsx   # User profile
+│   ├── ErrorBoundary.tsx # Error handling
+│   └── ui/               # UI components (button, card, etc)
+├── services/
+│   └── dsaApi.ts         # API client
+├── config/
+│   └── api.ts            # API configuration
+├── lib/
+│   └── utils.ts          # Utility functions
+└── types/
+    └── (implicit)        # TypeScript types
+```
+
+## Components
+
+### LoginPage
+Entry point with Google OAuth sign-in button
+
+### Navbar
+Navigation bar with user profile and menu options
+
+### DSADashboard
+Main dashboard showing:
+- Problem statistics
+- Progress charts
+- Recent activity
+- Quick links to features
+
+### ProblemsList
+Display all tracked problems with:
+- Filtering and sorting
+- Status badges
+- Quick actions
+
+### ProblemDetail
+Comprehensive problem view with:
+- Problem description
+- Implementation editor (tab-based)
+- Markdown notes editor
+- Live preview
+- AI analysis button
+
+### AddProblem
+Form to add new problems with:
+- URL input with auto-detection
+- Status and date selection
+- Implementation code input
+- AI summary generation
+- Notes editor
+
+### ProfilePage
+User profile management and settings
+
+## API Integration
+
+All API calls through `DSAApiService` in `src/services/dsaApi.ts`:
+
+```typescript
+// Examples
+await DSAApiService.getProblems()
+await DSAApiService.addProblem({...})
+await DSAApiService.generateAiSummary(code, notes)
+await DSAApiService.updateUserProblem(id, {...})
+```
+
+## Environment Configuration
+
+`.env.development` example:
+```
+VITE_API_BASE_URL=http://localhost:3000/api
+```
+
+## Development Tips
+
+### Hot Module Replacement
+Changes to files automatically reflect in browser without page refresh
+
+### TypeScript Support
+Full type checking during development - catch errors early
+
+### Vite Plugins
+Currently uses:
+- `@vitejs/plugin-react` - Fast Refresh with Babel
+
+### Debug Mode
+Use browser DevTools for React debugging:
+```javascript
+// In console
+__REACT_DEVTOOLS_EXTENSION__
+```
+
+## Performance Optimizations
+
+- Code splitting with React Router lazy loading
+- Image optimization with Vite
+- CSS purging with Tailwind
+- Build optimization with Vite rollup config
+
+## ESLint Configuration
+
+Current setup provides basic rules. For production, extend with:
+- Type-aware rules (enable tseslint strict checking)
+- React best practices (eslint-plugin-react-x)
+- Accessibility rules (eslint-plugin-jsx-a11y)
+
+See `eslint.config.js` for current configuration.
+
+## Deployment
+
+### Vercel (Recommended)
+```bash
+# Build output goes to dist/
+npm run build
+
+# Deploy with Vercel CLI
+vercel
+```
+
+### Other Platforms (Netlify, GitHub Pages, etc.)
+```bash
+npm run build
+# Upload dist/ folder to your hosting
+```
+
+## Troubleshooting
+
+### Hot Reload Not Working
+Clear `.vite` cache and restart dev server
+
+### API Connection Issues
+Check if server is running on `http://localhost:3000`
+Verify `VITE_API_BASE_URL` environment variable
+
+### Build Errors
+Clear `node_modules` and reinstall:
+```bash
+rm -rf node_modules
+npm install
+npm run build
+```
+
+## Contributing
+
+Follow these patterns when adding features:
+- Use TypeScript for all new files
+- Keep components in `src/components/`
+- Use `src/services/dsaApi.ts` for all API calls
+- Style with Tailwind classes
+- Add error boundaries for new features
+
+## License
+
+MIT License - See main project README for details
