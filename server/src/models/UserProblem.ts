@@ -83,7 +83,7 @@ const UserProblemSchema = new Schema<IUserProblem>(
     notes: {
       type: String,
       default: "",
-      maxlength: 2000,
+      maxlength: 10000,
     },
     date_solved: {
       type: Date,

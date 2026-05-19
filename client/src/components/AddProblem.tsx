@@ -248,7 +248,9 @@ const AddProblem: React.FC = () => {
         notes: notesTemplate,
         date_solved: ''
     })
+    const [implementationCode, setImplementationCode] = useState('')
     const [loading, setLoading] = useState(false)
+    const [aiLoading, setAiLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
 
@@ -357,6 +359,7 @@ const AddProblem: React.FC = () => {
                 notes: notesTemplate,
                 date_solved: ''
             })
+            setImplementationCode('')
 
             // Redirect to problems list after 2 seconds
             setTimeout(() => {
@@ -505,8 +508,8 @@ const AddProblem: React.FC = () => {
                                 </div>
 
                                 <div className="space-y-0">
-                                    {/* Markdown Toolbar */}
-                                    <div className="flex flex-wrap gap-2 p-4 bg-gray-50 border-b border-gray-200">
+                                    {/* AI Generate and Markdown Toolbar */}
+                                    <div className="flex flex-wrap gap-2 p-4 bg-gray-50 border-b border-gray-200 justify-between items-center">
                                         <div className="flex items-center space-x-1">
                                             <span className="text-xs font-medium text-gray-600 mr-2">Format:</span>
                                             <button
@@ -556,6 +559,44 @@ const AddProblem: React.FC = () => {
                                                 title="Heading"
                                             >
                                                 H
+                                            </button>
+                                        </div>
+
+                                        {/* Generate AI Summary Button */}
+                                        <div className="flex items-start space-x-2 w-full">
+                                            <textarea
+                                                placeholder="Paste implementation code here..."
+                                                value={implementationCode}
+                                                onChange={(e) => setImplementationCode(e.target.value)}
+                                                rows={6}
+                                                className="px-3 py-2 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:outline-none flex-1 font-mono resize-vertical min-w-[200px]"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={async () => {
+                                                    if (!implementationCode.trim()) {
+                                                        setError('Please paste implementation code first')
+                                                        return
+                                                    }
+                                                    setAiLoading(true)
+                                                    setError(null)
+                                                    try {
+                                                        const result = await DSAApiService.generateAiSummary(implementationCode, formData.notes)
+                                                        setFormData(prev => ({
+                                                            ...prev,
+                                                            notes: result.summary
+                                                        }))
+                                                    } catch (err: any) {
+                                                        const errorMsg = err.response?.data?.details || err.message || 'Failed to generate summary'
+                                                        setError(`AI Summary Error: ${errorMsg}`)
+                                                    } finally {
+                                                        setAiLoading(false)
+                                                    }
+                                                }}
+                                                disabled={aiLoading || !implementationCode.trim()}
+                                                className="px-4 py-1.5 text-xs bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                                            >
+                                                {aiLoading ? 'Generating...' : '✨ AI Summary'}
                                             </button>
                                         </div>
                                     </div>
