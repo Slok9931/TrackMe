@@ -251,6 +251,7 @@ const AddProblem: React.FC = () => {
     const [implementationCode, setImplementationCode] = useState('')
     const [loading, setLoading] = useState(false)
     const [aiLoading, setAiLoading] = useState(false)
+    const [leftTab, setLeftTab] = useState<'code' | 'notes'>('code')
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
 
@@ -501,134 +502,104 @@ const AddProblem: React.FC = () => {
                             {/* Left Column - Markdown Editor */}
                             <div className="bg-white rounded-xl border border-gray-200">
                                 <div className="p-6 border-b border-gray-200">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-1">✍️ Write Notes</h3>
-                                    <p className="text-sm text-gray-600">
-                                        Document your approach, insights, and learning points in Markdown
-                                    </p>
+                                    {leftTab === 'notes' ? (
+                                        <>
+                                            <h3 className="text-lg font-semibold text-gray-900 mb-1">✍️ Write Notes</h3>
+                                            <p className="text-sm text-gray-600">Document your approach, insights, and learning points in Markdown</p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <h3 className="text-lg font-semibold text-gray-900 mb-1">🧾 Implementation</h3>
+                                            <p className="text-sm text-gray-600">Paste your full implementation code here to generate notes.</p>
+                                        </>
+                                    )}
                                 </div>
 
                                 <div className="space-y-0">
-                                    {/* AI Generate and Markdown Toolbar */}
-                                    <div className="flex flex-wrap gap-2 p-4 bg-gray-50 border-b border-gray-200 justify-between items-center">
+                                    <div className="flex items-start justify-between p-4 bg-gray-50 border-b border-gray-200">
+                                        {/* Formatting toolbar only shown when on Notes tab */}
                                         <div className="flex items-center space-x-1">
-                                            <span className="text-xs font-medium text-gray-600 mr-2">Format:</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => insertText('**Bold**')}
-                                                className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 font-bold"
-                                                title="Bold"
-                                            >
-                                                B
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => insertText('*Italic*')}
-                                                className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 italic"
-                                                title="Italic"
-                                            >
-                                                I
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => insertText('`code`')}
-                                                className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 font-mono"
-                                                title="Inline Code"
-                                            >
-                                                {'</>'}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => insertText('\n```\ncode block\n```\n')}
-                                                className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100"
-                                                title="Code Block"
-                                            >
-                                                {'{}'}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => insertText('\n- List item\n')}
-                                                className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100"
-                                                title="List"
-                                            >
-                                                •
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => insertText('\n## Heading\n')}
-                                                className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 font-bold"
-                                                title="Heading"
-                                            >
-                                                H
-                                            </button>
+                                            {leftTab === 'notes' && (
+                                                <>
+                                                    <span className="text-xs font-medium text-gray-600 mr-2">Format:</span>
+                                                    <button type="button" onClick={() => insertText('**Bold**')} className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 font-bold" title="Bold">B</button>
+                                                    <button type="button" onClick={() => insertText('*Italic*')} className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 italic" title="Italic">I</button>
+                                                    <button type="button" onClick={() => insertText('`code`')} className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 font-mono" title="Inline Code">{'</>'}</button>
+                                                    <button type="button" onClick={() => insertText('\n```\ncode block\n```\n')} className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100" title="Code Block">{'{}'}</button>
+                                                    <button type="button" onClick={() => insertText('\n- List item\n')} className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100" title="List">•</button>
+                                                    <button type="button" onClick={() => insertText('\n## Heading\n')} className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 font-bold" title="Heading">H</button>
+                                                </>
+                                            )}
                                         </div>
 
-                                        {/* Generate AI Summary Button */}
-                                        <div className="flex items-start space-x-2 w-full">
-                                            <textarea
-                                                placeholder="Paste implementation code here..."
-                                                value={implementationCode}
-                                                onChange={(e) => setImplementationCode(e.target.value)}
-                                                rows={6}
-                                                className="px-3 py-2 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:outline-none flex-1 font-mono resize-vertical min-w-[200px]"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={async () => {
-                                                    if (!implementationCode.trim()) {
-                                                        setError('Please paste implementation code first')
-                                                        return
-                                                    }
-                                                    setAiLoading(true)
-                                                    setError(null)
-                                                    try {
-                                                        const result = await DSAApiService.generateAiSummary(implementationCode, formData.notes)
-                                                        setFormData(prev => ({
-                                                            ...prev,
-                                                            notes: result.summary
-                                                        }))
-                                                    } catch (err: any) {
-                                                        const errorMsg = err.response?.data?.details || err.message || 'Failed to generate summary'
-                                                        setError(`AI Summary Error: ${errorMsg}`)
-                                                    } finally {
-                                                        setAiLoading(false)
-                                                    }
-                                                }}
-                                                disabled={aiLoading || !implementationCode.trim()}
-                                                className="px-4 py-1.5 text-xs bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
-                                            >
-                                                {aiLoading ? 'Generating...' : '✨ AI Summary'}
-                                            </button>
+                                        {/* Tab switcher always visible */}
+                                        <div className="flex items-center space-x-2">
+                                            <button type="button" onClick={() => setLeftTab('code')} className={`px-3 py-2 -mb-px border-b-2 ${leftTab === 'code' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-600 hover:text-gray-800'}`}>Implementation</button>
+                                            <button type="button" onClick={() => setLeftTab('notes')} className={`px-3 py-2 -mb-px border-b-2 ${leftTab === 'notes' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-600 hover:text-gray-800'}`}>Notes</button>
                                         </div>
                                     </div>
 
-                                    {/* Markdown Textarea */}
-                                    <textarea
-                                        ref={textareaRef}
-                                        name="notes"
-                                        value={formData.notes}
-                                        onChange={handleInputChange}
-                                        rows={20}
-                                        className="notes-editor w-full px-4 py-4 focus:ring-2 focus:ring-green-500 rounded-b-md focus:outline-none resize-none font-mono text-sm leading-relaxed border-0"
-                                        placeholder="## Approach
-- Describe your solution strategy
-- Time: O(n), Space: O(1)
+                                    <div className="mt-3">
+                                                {leftTab === 'code' ? (
+                                                    <div className="rounded-b-xl bg-gradient-to-b from-white to-gray-50 p-4 shadow-sm">
+                                                        <textarea
+                                                            placeholder="Paste full implementation code here (preserves indentation)..."
+                                                            value={implementationCode}
+                                                            onChange={(e) => setImplementationCode(e.target.value)}
+                                                            rows={14}
+                                                            className="w-full min-h-[340px] rounded-xl border border-gray-200 bg-white px-4 py-4 text-sm font-mono leading-6 text-gray-900 shadow-inner outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-500/20 resize-y"
+                                                        />
 
-## Key Insights
-- Important observations
-- **Edge cases** to consider
+                                                        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                                            <p className="text-xs leading-5 text-gray-500">
+                                                                Paste clean, runnable code here. The AI summary uses this block to generate your notes.
+                                                            </p>
 
-```python
-def solution(nums):
-    # Your implementation
-    pass
-```
-
-## Alternative Solutions
-1. Brute force: O(n²)
-2. Optimized: O(n log n)"
-                                    />
+                                                            <button
+                                                                type="button"
+                                                                onClick={async () => {
+                                                                    if (!implementationCode.trim()) {
+                                                                        setError('Please paste implementation code first')
+                                                                        return
+                                                                    }
+                                                                    setAiLoading(true)
+                                                                    setError(null)
+                                                                    try {
+                                                                        const result = await DSAApiService.generateAiSummary(implementationCode, formData.notes)
+                                                                        // populate notes and switch to notes tab
+                                                                        setFormData(prev => ({
+                                                                            ...prev,
+                                                                            notes: result.summary
+                                                                        }))
+                                                                        setLeftTab('notes')
+                                                                    } catch (err: any) {
+                                                                        const errorMsg = err.response?.data?.details || err.message || 'Failed to generate summary'
+                                                                        setError(`AI Summary Error: ${errorMsg}`)
+                                                                    } finally {
+                                                                        setAiLoading(false)
+                                                                    }
+                                                                }}
+                                                                disabled={aiLoading || !implementationCode.trim()}
+                                                                className="inline-flex items-center justify-center rounded-xl bg-green-500 px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-green-200 transition-all hover:bg-green-600 hover:shadow-green-300 disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-[160px]"
+                                                            >
+                                                                {aiLoading ? 'Generating...' : '✨ Generate Summary'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <textarea
+                                                        ref={textareaRef}
+                                                        name="notes"
+                                                        value={formData.notes}
+                                                        onChange={handleInputChange}
+                                                        rows={18}
+                                                        className="notes-editor w-full px-4 py-4 focus:ring-2 focus:ring-green-500 rounded-b-md focus:outline-none resize-none font-mono text-sm leading-relaxed border-0"
+                                                        placeholder={notesTemplate}
+                                                    />
+                                                )}
+                                    </div>
                                 </div>
-                            </div>
+                                </div>
 
                             {/* Right Column - Live Preview */}
                             <div className="bg-white rounded-xl border border-gray-200">

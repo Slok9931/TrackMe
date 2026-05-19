@@ -441,18 +441,12 @@ const ProblemDetail: React.FC = () => {
                                     <div className="flex items-center space-x-3">
                                         <div className="flex items-center space-x-2">
                                             <span className="text-xl">
-                                                {problem.platform === 'leetcode' ? '🔴' : '🟢'}
+                                                {problem.platform === 'leetcode' ? <img src="/leetcode.jpg" alt="LeetCode" className="w-10 h-6 rounded-full" /> : <img src="/GeeksforGeeks.webp" alt="GeeksforGeeks" className="w-10 h-6 rounded-full" />}
                                             </span>
                                             <h1 className="text-2xl font-semibold text-gray-900">{problem.title}</h1>
                                         </div>
-                                        <span className={`px-2 py-1 text-xs font-medium rounded ${getDifficultyColor(problem.difficulty)}`}>
-                                            {problem.difficulty}
-                                        </span>
                                     </div>
                                     <div className='flex items-center space-x-2'>
-                                        <span className={`px-2 py-1 text-xs font-medium rounded ${getStatusColor(userProblem.status)}`}>
-                                            {userProblem.status}
-                                        </span>
                                         <button
                                             onClick={() => togglePanelMinimized(0)}
                                             className="p-1 hover:bg-gray-200 rounded transition-colors"
@@ -467,11 +461,17 @@ const ProblemDetail: React.FC = () => {
                                 <div className="mb-6">
                                     {problem.topicTags && problem.topicTags.length > 0 && (
                                         <div className="flex flex-wrap gap-2 mb-4">
+                                            <span className={`px-2 py-1 text-xs font-medium rounded ${getDifficultyColor(problem.difficulty)}`}>
+                                            {problem.difficulty}
+                                        </span>
                                             {problem.topicTags.map((tag: any) => (
                                                 <span key={tag.slug} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
                                                     {tag.name}
                                                 </span>
                                             ))}
+                                            <span className={`px-2 py-1 text-xs font-medium rounded ${getStatusColor(userProblem.status)}`}>
+                                            {userProblem.status}
+                                        </span>
                                         </div>
                                     )}
 
@@ -623,7 +623,7 @@ const ProblemDetail: React.FC = () => {
                                                 className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
                                                 title="Generate AI Summary"
                                             >
-                                                {aiLoading ? 'Generating...' : 'Generate AI Summary'}
+                                                {aiLoading ? 'Generating...' : '✨ Generate Summary'}
                                             </button>
                                         </div>
                                     </div>
