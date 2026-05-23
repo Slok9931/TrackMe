@@ -3,6 +3,14 @@ import { Link } from 'react-router-dom'
 import DSAApiService from '../services/dsaApi'
 import type { UserProblem } from '../services/dsaApi'
 
+// Helper to produce a local YYYY-MM-DD date key (avoids UTC shift from toISOString)
+const toLocalDateKey = (date: Date) => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+}
+
 // Custom Date Picker Component
 const CustomDatePicker: React.FC<{
     value: string
@@ -72,7 +80,7 @@ const CustomDatePicker: React.FC<{
 
     // Update selectedDate when value prop changes
     useEffect(() => {
-        if (value && value !== selectedDate?.toISOString().split('T')[0]) {
+        if (value && value !== (selectedDate ? toLocalDateKey(selectedDate) : undefined)) {
             setSelectedDate(new Date(value))
         } else if (!value) {
             setSelectedDate(null)
@@ -277,7 +285,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
         const current = new Date(start)
 
         while (current <= end) {
-            const dateStr = current.toISOString().split('T')[0]
+            const dateStr = toLocalDateKey(current)
             dailyData.set(dateStr, {
                 date: dateStr,
                 problems: 0,
@@ -291,7 +299,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
         // Populate with actual data
         filteredProblems.forEach(problem => {
             if (problem.status === 'Completed' && problem.date_solved) {
-                const dateStr = new Date(problem.date_solved).toISOString().split('T')[0]
+                const dateStr = toLocalDateKey(new Date(problem.date_solved))
                 const data = dailyData.get(dateStr)
                 if (data) {
                     data.problems += 1
@@ -891,14 +899,35 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                                                 >
                                                     📝 View Details
                                                 </Link>
-                                                <a
-                                                    href={problem.problemUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="px-4 py-2 bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 transition-colors text-sm font-semibold text-center"
-                                                >
-                                                    🔗 LeetCode
-                                                </a>
+                                                {problem && (problem as any).platform ? (
+                                                    <a
+                                                        href={(problem as any).problemUrl || (userProblem as any).problem_link}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 transition-colors text-sm font-semibold"
+                                                    >
+                                                        {(problem as any).platform === 'gfg' ? (
+                                                            <>
+                                                                <img src="/GFG.png" alt="GeeksforGeeks" className="w-5 h-5 rounded-sm" />
+                                                                <span>GeeksforGeeks</span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <img src="/Leetcode.png" alt="LeetCode" className="w-5 h-5 rounded-sm" />
+                                                                <span>LeetCode</span>
+                                                            </>
+                                                        )}
+                                                    </a>
+                                                ) : (
+                                                    <a
+                                                        href={problem.problemUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="px-4 py-2 bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 transition-colors text-sm font-semibold text-center"
+                                                    >
+                                                        🔗 View
+                                                    </a>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

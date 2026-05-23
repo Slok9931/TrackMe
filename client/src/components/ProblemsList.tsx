@@ -763,7 +763,7 @@ const ProblemsList: React.FC = () => {
                                                     <div className="flex flex-col">
                                                         <div className="text-sm font-medium text-gray-900 mb-1 flex items-center">
                                                             <span className="mr-2">
-                                                                {problem.platform === 'gfg' ? <img src="/GeeksforGeeks.webp" alt="GeeksforGeeks" className="w-6 h-6 rounded-full" /> : <img src="/leetcode.jpg" alt="LeetCode" className="w-6 h-6 rounded-full" />}
+                                                                {problem.platform === 'gfg' ? <img src="/GFG.png" alt="GeeksforGeeks" className="w-6 h-6 rounded-full" /> : <img src="/Leetcode.png" alt="LeetCode" className="w-6 h-6 rounded-full" />}
                                                             </span>
                                                             {problem.title}
                                                         </div>

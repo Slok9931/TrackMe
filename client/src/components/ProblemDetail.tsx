@@ -441,7 +441,7 @@ const ProblemDetail: React.FC = () => {
                                     <div className="flex items-center space-x-3">
                                         <div className="flex items-center space-x-2">
                                             <span className="text-xl">
-                                                {problem.platform === 'leetcode' ? <img src="/leetcode.jpg" alt="LeetCode" className="w-10 h-6 rounded-full" /> : <img src="/GeeksforGeeks.webp" alt="GeeksforGeeks" className="w-10 h-6 rounded-full" />}
+                                                {problem.platform === 'leetcode' ? <img src="/Leetcode.png" alt="LeetCode" className="w-10 h-6 rounded-full" /> : <img src="/GFG.png" alt="GeeksforGeeks" className="w-10 h-6 rounded-full" />}
                                             </span>
                                             <h1 className="text-2xl font-semibold text-gray-900">{problem.title}</h1>
                                         </div>
