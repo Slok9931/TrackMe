@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   AlertTriangle,
@@ -7,9 +7,6 @@ import {
   CalendarCheck2,
   CalendarDays,
   CheckCircle2,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   Circle,
   Clock3,
   Compass,
@@ -25,220 +22,16 @@ import {
 } from "lucide-react";
 import DSAApiService from "../services/dsaApi";
 import type { UserProblem } from "../services/dsaApi";
-
-// Helper to produce a local YYYY-MM-DD date key (avoids UTC shift from toISOString)
-const toLocalDateKey = (date: Date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-
-// Custom Date Picker Component
-const CustomDatePicker: React.FC<{
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-}> = ({ value, onChange, placeholder }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(
-    value ? new Date(value) : null,
-  );
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
-  const getDaysInMonth = (date: Date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
-
-    const days = [];
-
-    // Add empty cells for days before the first day of the month
-    for (let i = 0; i < startingDayOfWeek; i++) {
-      days.push(null);
-    }
-
-    // Add days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-      days.push(new Date(year, month, day));
-    }
-
-    return days;
-  };
-
-  const isToday = (date: Date) => {
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
-  };
-
-  const isSameDay = (date1: Date | null, date2: Date | null) => {
-    if (!date1 || !date2) return false;
-    return date1.toDateString() === date2.toDateString();
-  };
-
-  const handleDateSelect = (date: Date) => {
-    setSelectedDate(date);
-    // Format date as YYYY-MM-DD in local timezone to avoid timezone offset issues
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    onChange(`${year}-${month}-${day}`);
-    setIsOpen(false);
-  };
-
-  const clearDate = () => {
-    setSelectedDate(null);
-    onChange("");
-    setIsOpen(false);
-  };
-
-  // Update selectedDate when value prop changes
-  useEffect(() => {
-    if (
-      value &&
-      value !== (selectedDate ? toLocalDateKey(selectedDate) : undefined)
-    ) {
-      setSelectedDate(new Date(value));
-    } else if (!value) {
-      setSelectedDate(null);
-    }
-  }, [value]);
-
-  return (
-    <div className="relative z-50">
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-4 py-3 border border-white/15 rounded-xl hover:border-amber-300/50 focus:ring-2 focus:ring-amber-300/70 focus:border-transparent transition-all bg-slate-900/70"
-      >
-        <span className="flex items-center">
-          <CalendarDays className="w-5 h-5 mr-2 text-slate-300" />
-          <span className={selectedDate ? "text-slate-100" : "text-slate-400"}>
-            {selectedDate ? formatDate(selectedDate) : placeholder}
-          </span>
-        </span>
-        <ChevronDown
-          className={`w-5 h-5 transition-transform text-slate-300 ${isOpen ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {isOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-[80]"
-            onClick={() => setIsOpen(false)}
-          />
-          <div className="absolute z-[90] mt-1 bg-slate-900 border border-white/15 rounded-xl shadow-[0_22px_60px_rgba(2,6,23,0.7)] p-4 min-w-80 backdrop-blur-xl">
-            {/* Calendar Header */}
-            <div className="flex items-center justify-between mb-4">
-              <button
-                type="button"
-                onClick={() =>
-                  setCurrentMonth(
-                    new Date(
-                      currentMonth.getFullYear(),
-                      currentMonth.getMonth() - 1,
-                    ),
-                  )
-                }
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5 text-slate-200" />
-              </button>
-              <h3 className="text-lg font-semibold text-slate-100">
-                {currentMonth.toLocaleDateString("en-US", {
-                  month: "long",
-                  year: "numeric",
-                })}
-              </h3>
-              <button
-                type="button"
-                onClick={() =>
-                  setCurrentMonth(
-                    new Date(
-                      currentMonth.getFullYear(),
-                      currentMonth.getMonth() + 1,
-                    ),
-                  )
-                }
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <ChevronRight className="w-5 h-5 text-slate-200" />
-              </button>
-            </div>
-
-            {/* Day labels */}
-            <div className="grid grid-cols-7 gap-1 mb-3">
-              {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
-                <div
-                  key={day}
-                  className="text-sm font-medium text-slate-400 text-center py-2"
-                >
-                  {day}
-                </div>
-              ))}
-            </div>
-
-            {/* Calendar days */}
-            <div className="grid grid-cols-7 gap-1 mb-4">
-              {getDaysInMonth(currentMonth).map((date, index) => (
-                <div key={index} className="aspect-square">
-                  {date && (
-                    <button
-                      type="button"
-                      onClick={() => handleDateSelect(date)}
-                      className={`w-full h-full text-sm rounded-lg hover:bg-white/10 transition-colors ${
-                        isSameDay(date, selectedDate)
-                          ? "bg-amber-300 text-slate-950 hover:bg-amber-200"
-                          : isToday(date)
-                            ? "bg-amber-300/20 text-amber-100 font-semibold"
-                            : "text-slate-200"
-                      }`}
-                    >
-                      {date.getDate()}
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Action buttons */}
-            <div className="flex justify-between pt-3 border-t border-white/10">
-              <button
-                type="button"
-                onClick={clearDate}
-                className="text-sm text-slate-300 hover:text-slate-100 px-3 py-1 rounded-lg hover:bg-white/10 transition-colors"
-              >
-                Clear
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const today = new Date();
-                  handleDateSelect(today);
-                }}
-                className="text-sm text-amber-700 hover:text-amber-800 px-3 py-1 rounded-lg hover:bg-amber-50 transition-colors font-medium"
-              >
-                Today
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
+import { DatePicker } from './ui/date-picker'
+import LineChartCard from './dashboard/charts/LineChartCard'
+import BarChartCard from './dashboard/charts/BarChartCard'
+import PieChartCard from './dashboard/charts/PieChartCard'
+import {
+  buildDashboardChartData,
+  buildDashboardDifficultyBreakdown,
+  getDashboardProblemStats,
+  type DashboardDateRange,
+} from '../lib/utils'
 
 interface User {
   _id: string;
@@ -260,20 +53,6 @@ type DateRange =
   | "last_year"
   | "custom";
 
-interface ChartData {
-  date: string;
-  problems: number;
-  easy: number;
-  medium: number;
-  hard: number;
-}
-
-interface DifficultyData {
-  difficulty: string;
-  count: number;
-  color: string;
-}
-
 interface RangeOption {
   value: DateRange;
   label: string;
@@ -285,11 +64,9 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDateRange, setSelectedDateRange] =
-    useState<DateRange>("this_month");
+    useState<DashboardDateRange>("this_month");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
-  const [chartData, setChartData] = useState<ChartData[]>([]);
-  const [difficultyData, setDifficultyData] = useState<DifficultyData[]>([]);
   const [allUserProblems, setAllUserProblems] = useState<UserProblem[]>([]);
   const dateRangeOptions: RangeOption[] = [
     { value: "today", label: "Today", icon: CalendarDays },
@@ -300,132 +77,34 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
     { value: "custom", label: "Custom Range", icon: Target },
   ];
 
-  const completedProblems = allUserProblems.filter(
-    (problem) => problem.status === "Completed",
+  const dashboardStats = useMemo(
+    () => getDashboardProblemStats(allUserProblems),
+    [allUserProblems],
   );
-  const easyCount = completedProblems.filter(
-    (problem) => (problem.problemId as any)?.difficulty === "Easy",
-  ).length;
-  const mediumCount = completedProblems.filter(
-    (problem) => (problem.problemId as any)?.difficulty === "Medium",
-  ).length;
-  const hardCount = completedProblems.filter(
-    (problem) => (problem.problemId as any)?.difficulty === "Hard",
-  ).length;
+  const chartData = useMemo(
+    () =>
+      buildDashboardChartData(
+        allUserProblems,
+        selectedDateRange,
+        customStartDate,
+        customEndDate,
+      ),
+    [allUserProblems, selectedDateRange, customStartDate, customEndDate],
+  );
+  const difficultyData = useMemo(
+    () =>
+      buildDashboardDifficultyBreakdown(
+        allUserProblems,
+        selectedDateRange,
+        customStartDate,
+        customEndDate,
+      ),
+    [allUserProblems, selectedDateRange, customStartDate, customEndDate],
+  );
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
-
-  useEffect(() => {
-    generateChartData();
-  }, [selectedDateRange, customStartDate, customEndDate, allUserProblems]);
-
-  const getDateRange = () => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    switch (selectedDateRange) {
-      case "today":
-        return {
-          start: today,
-          end: new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1),
-        };
-      case "last_week":
-        const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-        return { start: lastWeek, end: now };
-      case "this_month":
-        const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        return { start: thisMonth, end: now };
-      case "last_6_months":
-        const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
-        return { start: sixMonthsAgo, end: now };
-      case "last_year":
-        const lastYear = new Date(
-          now.getFullYear() - 1,
-          now.getMonth(),
-          now.getDate(),
-        );
-        return { start: lastYear, end: now };
-      case "custom":
-        return {
-          start: customStartDate
-            ? new Date(customStartDate)
-            : new Date(now.getFullYear(), now.getMonth(), 1),
-          end: customEndDate ? new Date(customEndDate) : now,
-        };
-      default:
-        return {
-          start: new Date(now.getFullYear(), now.getMonth(), 1),
-          end: now,
-        };
-    }
-  };
-
-  const generateChartData = () => {
-    if (allUserProblems.length === 0) return;
-
-    const { start, end } = getDateRange();
-    const filteredProblems = allUserProblems.filter((problem) => {
-      if (!problem.date_solved) return false;
-      const problemDate = new Date(problem.date_solved);
-      return problemDate >= start && problemDate <= end;
-    });
-
-    // Generate daily data for chart
-    const dailyData = new Map<string, ChartData>();
-    const current = new Date(start);
-
-    while (current <= end) {
-      const dateStr = toLocalDateKey(current);
-      dailyData.set(dateStr, {
-        date: dateStr,
-        problems: 0,
-        easy: 0,
-        medium: 0,
-        hard: 0,
-      });
-      current.setDate(current.getDate() + 1);
-    }
-
-    // Populate with actual data
-    filteredProblems.forEach((problem) => {
-      if (problem.status === "Completed" && problem.date_solved) {
-        const dateStr = toLocalDateKey(new Date(problem.date_solved));
-        const data = dailyData.get(dateStr);
-        if (data) {
-          data.problems += 1;
-          const difficulty = (problem.problemId as any)?.difficulty;
-          if (difficulty === "Easy") data.easy += 1;
-          else if (difficulty === "Medium") data.medium += 1;
-          else if (difficulty === "Hard") data.hard += 1;
-        }
-      }
-    });
-
-    setChartData(
-      Array.from(dailyData.values()).sort((a, b) =>
-        a.date.localeCompare(b.date),
-      ),
-    );
-
-    // Generate difficulty breakdown
-    const difficultyCount = { Easy: 0, Medium: 0, Hard: 0 };
-    filteredProblems.forEach((problem) => {
-      if (problem.status === "Completed") {
-        const difficulty = (problem.problemId as any)?.difficulty;
-        if (difficulty && difficultyCount.hasOwnProperty(difficulty)) {
-          difficultyCount[difficulty as keyof typeof difficultyCount] += 1;
-        }
-      }
-    });
-
-    setDifficultyData([
-      { difficulty: "Easy", count: difficultyCount.Easy, color: "#10b981" },
-      { difficulty: "Medium", count: difficultyCount.Medium, color: "#f59e0b" },
-      { difficulty: "Hard", count: difficultyCount.Hard, color: "#ef4444" },
-    ]);
-  };
 
   const fetchDashboardData = async () => {
     try {
@@ -483,7 +162,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
               <label className="block text-sm font-semibold text-slate-200 mb-3">
                 Start Date
               </label>
-              <CustomDatePicker
+              <DatePicker
                 value={customStartDate}
                 onChange={setCustomStartDate}
                 placeholder="Select start date"
@@ -493,7 +172,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
               <label className="block text-sm font-semibold text-slate-200 mb-3">
                 End Date
               </label>
-              <CustomDatePicker
+              <DatePicker
                 value={customEndDate}
                 onChange={setCustomEndDate}
                 placeholder="Select end date"
@@ -506,493 +185,15 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
   );
 
   const LineChart = () => {
-    const maxValue = Math.max(...chartData.map((d) => d.problems), 1);
-    const chartHeight = 260;
-    const chartWidth = 760;
-    const leftPadding = 52;
-    const rightPadding = 24;
-    const topPadding = 20;
-    const innerWidth = chartWidth - leftPadding - rightPadding;
-    const [hoveredPoint, setHoveredPoint] = useState<{
-      x: number;
-      y: number;
-      problems: number;
-      date: string;
-    } | null>(null);
-
-    return (
-      <div className="rounded-3xl border border-white/15 bg-slate-900/55 p-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
-        <div className="flex items-center mb-6">
-          <LineChartIcon className="w-6 h-6 mr-3 text-amber-300" />
-          <h3 className="text-xl font-bold text-white">
-            Problems Solved Over Time
-          </h3>
-        </div>
-        <div className="relative overflow-x-auto" style={{ height: chartHeight + 46 }}>
-          <svg
-            width="100%"
-            height={chartHeight + 40}
-            viewBox={`0 0 ${chartWidth} ${chartHeight + 40}`}
-            preserveAspectRatio="none"
-            className="overflow-visible"
-          >
-            {/* Grid lines */}
-            {[0, 0.25, 0.5, 0.75, 1].map((ratio) => (
-              <line
-                key={ratio}
-                x1={leftPadding}
-                y1={topPadding + ratio * chartHeight}
-                x2={chartWidth - rightPadding}
-                y2={topPadding + ratio * chartHeight}
-                stroke="#334155"
-                strokeWidth="1"
-              />
-            ))}
-
-            {/* Y-axis labels */}
-            {[0, 0.25, 0.5, 0.75, 1].map((ratio) => (
-              <text
-                key={ratio}
-                x={leftPadding - 12}
-                y={topPadding + 6 + ratio * chartHeight}
-                textAnchor="end"
-                fontSize="12"
-                fill="#94a3b8"
-              >
-                {Math.round((1 - ratio) * maxValue)}
-              </text>
-            ))}
-
-            {/* Line chart */}
-            {chartData.length > 1 && (
-              <polyline
-                points={chartData
-                  .map(
-                    (d, i) =>
-                      `${leftPadding + (i / (chartData.length - 1)) * innerWidth},${topPadding + chartHeight - (d.problems / maxValue) * chartHeight}`,
-                  )
-                  .join(" ")}
-                fill="none"
-                stroke="#fbbf24"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            )}
-
-            {/* Data points */}
-            {chartData.map((d, i) => (
-              <circle
-                key={d.date}
-                cx={
-                  leftPadding +
-                  (i / Math.max(chartData.length - 1, 1)) *
-                    innerWidth
-                }
-                cy={topPadding + chartHeight - (d.problems / maxValue) * chartHeight}
-                r="4"
-                fill="#fbbf24"
-                className="hover:r-6 transition-all cursor-pointer"
-                onMouseEnter={() => {
-                  setHoveredPoint({
-                    x:
-                      leftPadding +
-                      (i / Math.max(chartData.length - 1, 1)) *
-                        innerWidth,
-                    y:
-                      topPadding +
-                      chartHeight -
-                      (d.problems / maxValue) * chartHeight,
-                    problems: d.problems,
-                    date: d.date,
-                  });
-                }}
-                onMouseLeave={() => setHoveredPoint(null)}
-              />
-            ))}
-
-            {hoveredPoint && (
-              <g pointerEvents="none">
-                <rect
-                  x={Math.min(
-                    Math.max(hoveredPoint.x - 84, leftPadding),
-                    chartWidth - 170,
-                  )}
-                  y={Math.max(hoveredPoint.y - 52, 8)}
-                  width="160"
-                  height="40"
-                  rx="10"
-                  fill="#0f172a"
-                  stroke="#fbbf24"
-                  strokeWidth="1"
-                  opacity="0.95"
-                />
-                <text
-                  x={Math.min(
-                    Math.max(hoveredPoint.x - 74, leftPadding + 8),
-                    chartWidth - 160,
-                  )}
-                  y={Math.max(hoveredPoint.y - 34, 24)}
-                  fontSize="11"
-                  fill="#f8fafc"
-                >
-                  {`Solved: ${hoveredPoint.problems}`}
-                </text>
-                <text
-                  x={Math.min(
-                    Math.max(hoveredPoint.x - 74, leftPadding + 8),
-                    chartWidth - 160,
-                  )}
-                  y={Math.max(hoveredPoint.y - 20, 38)}
-                  fontSize="10"
-                  fill="#cbd5e1"
-                >
-                  {new Date(hoveredPoint.date).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </text>
-              </g>
-            )}
-          </svg>
-        </div>
-      </div>
-    );
+    return <LineChartCard data={chartData} />;
   };
 
   const BarChart = () => {
-    const maxValue = Math.max(
-      ...chartData.map((d) => Math.max(d.easy, d.medium, d.hard)),
-      1,
-    );
-    const barWidth = Math.max(20, Math.min(40, 600 / chartData.length));
-    const [hoveredBar, setHoveredBar] = useState<{
-      x: number;
-      y: number;
-      label: string;
-      value: number;
-    } | null>(null);
-
-    return (
-      <div className="rounded-3xl border border-white/15 bg-slate-900/55 p-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
-        <div className="flex items-center mb-6">
-          <BarChart3 className="w-6 h-6 mr-3 text-amber-300" />
-          <h3 className="text-xl font-bold text-white">
-            Difficulty Breakdown Over Time
-          </h3>
-        </div>
-        <div className="overflow-x-auto">
-          <svg
-            width={Math.max(800, chartData.length * (barWidth + 4))}
-            height="240"
-            className="overflow-visible"
-          >
-            {/* Y-axis labels */}
-            {[0, 0.25, 0.5, 0.75, 1].map((ratio) => (
-              <text
-                key={ratio}
-                x="30"
-                y={25 + ratio * 180}
-                textAnchor="end"
-                fontSize="12"
-                fill="#94a3b8"
-              >
-                {Math.round((1 - ratio) * maxValue)}
-              </text>
-            ))}
-
-            {/* Bars */}
-            {chartData.map((d, i) => {
-              const x = 40 + i * (barWidth + 4);
-              const easyHeight = (d.easy / maxValue) * 180;
-              const mediumHeight = (d.medium / maxValue) * 180;
-              const hardHeight = (d.hard / maxValue) * 180;
-
-              return (
-                <g key={d.date}>
-                  {/* Easy */}
-                  <rect
-                    x={x}
-                    y={200 - easyHeight}
-                    width={barWidth / 3}
-                    height={easyHeight}
-                    fill="#10b981"
-                    className="hover:opacity-80 transition-opacity"
-                    onMouseEnter={() =>
-                      setHoveredBar({
-                        x: x + barWidth / 6,
-                        y: 200 - easyHeight,
-                        label: "Easy",
-                        value: d.easy,
-                      })
-                    }
-                    onMouseLeave={() => setHoveredBar(null)}
-                  />
-                  {/* Medium */}
-                  <rect
-                    x={x + barWidth / 3}
-                    y={200 - mediumHeight}
-                    width={barWidth / 3}
-                    height={mediumHeight}
-                    fill="#f59e0b"
-                    className="hover:opacity-80 transition-opacity"
-                    onMouseEnter={() =>
-                      setHoveredBar({
-                        x: x + barWidth / 2,
-                        y: 200 - mediumHeight,
-                        label: "Medium",
-                        value: d.medium,
-                      })
-                    }
-                    onMouseLeave={() => setHoveredBar(null)}
-                  />
-                  {/* Hard */}
-                  <rect
-                    x={x + (2 * barWidth) / 3}
-                    y={200 - hardHeight}
-                    width={barWidth / 3}
-                    height={hardHeight}
-                    fill="#ef4444"
-                    className="hover:opacity-80 transition-opacity"
-                    onMouseEnter={() =>
-                      setHoveredBar({
-                        x: x + (5 * barWidth) / 6,
-                        y: 200 - hardHeight,
-                        label: "Hard",
-                        value: d.hard,
-                      })
-                    }
-                    onMouseLeave={() => setHoveredBar(null)}
-                  />
-                  {/* Date label */}
-                  {i % Math.max(1, Math.floor(chartData.length / 10)) === 0 && (
-                    <text
-                      x={x + barWidth / 2}
-                      y="230"
-                      textAnchor="middle"
-                      fontSize="10"
-                      fill="#94a3b8"
-                    >
-                      {new Date(d.date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </text>
-                  )}
-                </g>
-              );
-            })}
-
-            {hoveredBar && (
-              <g pointerEvents="none">
-                <rect
-                  x={Math.max(36, hoveredBar.x - 52)}
-                  y={Math.max(8, hoveredBar.y - 46)}
-                  width="104"
-                  height="34"
-                  rx="9"
-                  fill="#0f172a"
-                  stroke="#fbbf24"
-                  strokeWidth="1"
-                  opacity="0.95"
-                />
-                <text
-                  x={Math.max(44, hoveredBar.x - 44)}
-                  y={Math.max(24, hoveredBar.y - 24)}
-                  fontSize="11"
-                  fill="#f8fafc"
-                >
-                  {`${hoveredBar.label}: ${hoveredBar.value}`}
-                </text>
-              </g>
-            )}
-          </svg>
-        </div>
-      </div>
-    );
+    return <BarChartCard data={chartData} />;
   };
 
   const PieChart = () => {
-    const total = difficultyData.reduce((sum, d) => sum + d.count, 0);
-    const [hoveredSlice, setHoveredSlice] = useState<{
-      x: number;
-      y: number;
-      difficulty: string;
-      count: number;
-      percentage: number;
-    } | null>(null);
-
-    if (total === 0) {
-      return (
-        <div className="rounded-3xl border border-white/15 bg-slate-900/55 p-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
-          <div className="flex items-center mb-6">
-            <Target className="w-6 h-6 mr-3 text-amber-300" />
-            <h3 className="text-xl font-bold text-white">
-              Difficulty Distribution
-            </h3>
-          </div>
-          <div className="flex items-center justify-center h-40 text-slate-400">
-            <div className="text-center">
-              <BarChart3 className="w-10 h-10 mx-auto mb-2" />
-              <p className="text-sm">No data available for selected range</p>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    let currentAngle = 0;
-    const radius = 80;
-    const centerX = 120;
-    const centerY = 100;
-
-    return (
-      <div className="rounded-3xl border border-white/15 bg-slate-900/55 p-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
-        <div className="flex items-center mb-6">
-          <Target className="w-6 h-6 mr-3 text-amber-300" />
-          <h3 className="text-xl font-bold text-white">
-            Difficulty Distribution
-          </h3>
-        </div>
-        <div className="flex items-center justify-center">
-          <svg width="240" height="200">
-            {difficultyData.map((d) => {
-              if (d.count === 0) return null;
-
-              const percentage = (d.count / total) * 100;
-              const angle = (d.count / total) * 360;
-              const startAngle = currentAngle;
-              const endAngle = currentAngle + angle;
-              const midAngle = (startAngle + endAngle) / 2;
-
-              const x1 =
-                centerX +
-                radius * Math.cos(((startAngle - 90) * Math.PI) / 180);
-              const y1 =
-                centerY +
-                radius * Math.sin(((startAngle - 90) * Math.PI) / 180);
-              const x2 =
-                centerX + radius * Math.cos(((endAngle - 90) * Math.PI) / 180);
-              const y2 =
-                centerY + radius * Math.sin(((endAngle - 90) * Math.PI) / 180);
-
-              const largeArcFlag = angle > 180 ? 1 : 0;
-
-              const pathData = [
-                `M ${centerX} ${centerY}`,
-                `L ${x1} ${y1}`,
-                `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-                "Z",
-              ].join(" ");
-
-              currentAngle += angle;
-
-              return (
-                <path
-                  key={d.difficulty}
-                  d={pathData}
-                  fill={d.color}
-                  className="hover:opacity-80 transition-opacity cursor-pointer"
-                  onMouseEnter={() =>
-                    setHoveredSlice({
-                      x:
-                        centerX +
-                        Math.cos(((midAngle - 90) * Math.PI) / 180) *
-                          (radius * 0.75),
-                      y:
-                        centerY +
-                        Math.sin(((midAngle - 90) * Math.PI) / 180) *
-                          (radius * 0.75),
-                      difficulty: d.difficulty,
-                      count: d.count,
-                      percentage,
-                    })
-                  }
-                  onMouseLeave={() => setHoveredSlice(null)}
-                />
-              );
-            })}
-
-            {hoveredSlice && (
-              <g pointerEvents="none">
-                <rect
-                  x={Math.max(8, hoveredSlice.x - 66)}
-                  y={Math.max(6, hoveredSlice.y - 44)}
-                  width="132"
-                  height="36"
-                  rx="9"
-                  fill="#0f172a"
-                  stroke="#fbbf24"
-                  strokeWidth="1"
-                  opacity="0.95"
-                />
-                <text
-                  x={Math.max(14, hoveredSlice.x - 58)}
-                  y={Math.max(22, hoveredSlice.y - 22)}
-                  fontSize="11"
-                  fill="#f8fafc"
-                >
-                  {`${hoveredSlice.difficulty}: ${hoveredSlice.count}`}
-                </text>
-                <text
-                  x={Math.max(14, hoveredSlice.x - 58)}
-                  y={Math.max(34, hoveredSlice.y - 10)}
-                  fontSize="10"
-                  fill="#cbd5e1"
-                >
-                  {`${hoveredSlice.percentage.toFixed(1)}%`}
-                </text>
-              </g>
-            )}
-
-            {/* Center circle */}
-            <circle
-              cx={centerX}
-              cy={centerY}
-              r="30"
-              fill="#0f172a"
-              stroke="#334155"
-              strokeWidth="2"
-            />
-            <text
-              x={centerX}
-              y={centerY - 5}
-              textAnchor="middle"
-              fontSize="16"
-              fontWeight="bold"
-              fill="#ffffff"
-            >
-              {total}
-            </text>
-            <text
-              x={centerX}
-              y={centerY + 10}
-              textAnchor="middle"
-              fontSize="12"
-              fill="#ffffff"
-            >
-              Total
-            </text>
-          </svg>
-        </div>
-
-        {/* Legend */}
-        <div className="flex justify-center space-x-6 mt-4">
-          {difficultyData.map((d) => (
-            <div key={d.difficulty} className="flex items-center space-x-2">
-              <div
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: d.color }}
-              ></div>
-              <span className="text-sm text-slate-200">
-                {d.difficulty}: {d.count}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return <PieChartCard data={difficultyData} />;
   };
 
   if (loading) {
@@ -1073,7 +274,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                 <p className="text-xs uppercase tracking-wide text-slate-300 mb-1">
                   Total Completed
                 </p>
-                <p className="text-2xl font-extrabold">{completedProblems.length}</p>
+                <p className="text-2xl font-extrabold">{dashboardStats.completedCount}</p>
               </div>
               <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-4 backdrop-blur-md">
                 <p className="text-xs uppercase tracking-wide text-amber-100/80 mb-1">
@@ -1085,7 +286,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                 <p className="text-xs uppercase tracking-wide text-amber-100/80 mb-1">
                   Hard Wins
                 </p>
-                <p className="text-2xl font-extrabold">{hardCount}</p>
+                <p className="text-2xl font-extrabold">{dashboardStats.hardCount}</p>
               </div>
             </div>
           </div>
@@ -1122,7 +323,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-300">Total Solved</p>
-                <p className="text-3xl font-bold text-white">{completedProblems.length}</p>
+                <p className="text-3xl font-bold text-white">{dashboardStats.completedCount}</p>
               </div>
               <div className="w-12 h-12 bg-amber-300/20 rounded-xl flex items-center justify-center">
                 <CheckCircle2 className="w-6 h-6 text-amber-200" />
@@ -1134,7 +335,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-300">Easy Problems</p>
-                <p className="text-3xl font-bold text-emerald-500">{easyCount}</p>
+                <p className="text-3xl font-bold text-emerald-500">{dashboardStats.easyCount}</p>
               </div>
               <div className="w-12 h-12 bg-emerald-300/20 rounded-xl flex items-center justify-center">
                 <Circle className="w-6 h-6 text-emerald-500 fill-current" />
@@ -1146,7 +347,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-300">Medium Problems</p>
-                <p className="text-3xl font-bold text-amber-300">{mediumCount}</p>
+                <p className="text-3xl font-bold text-amber-300">{dashboardStats.mediumCount}</p>
               </div>
               <div className="w-12 h-12 bg-amber-300/20 rounded-xl flex items-center justify-center">
                 <Circle className="w-6 h-6 text-amber-300 fill-current" />
@@ -1158,7 +359,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-300">Hard Problems</p>
-                    <p className="text-3xl font-bold text-red-500">{hardCount}</p>
+                    <p className="text-3xl font-bold text-red-500">{dashboardStats.hardCount}</p>
               </div>
                   <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center">
                     <Circle className="w-6 h-6 text-red-500 fill-current" />
