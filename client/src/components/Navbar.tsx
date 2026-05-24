@@ -1,5 +1,14 @@
 import React, { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import {
+    BarChart3,
+    Menu,
+    LogOut,
+    PlusCircle,
+    Puzzle,
+    User,
+    type LucideIcon,
+} from 'lucide-react'
 import { apiClient, config } from '../config/api'
 
 interface User {
@@ -13,6 +22,12 @@ interface User {
 interface NavbarProps {
     user: User
     setUser: (user: User | null) => void
+}
+
+interface NavLinkItem {
+    path: string
+    label: string
+    icon: LucideIcon
 }
 
 const Navbar: React.FC<NavbarProps> = ({ user, setUser }) => {
@@ -42,10 +57,10 @@ const Navbar: React.FC<NavbarProps> = ({ user, setUser }) => {
         return location.pathname === path
     }
 
-    const navLinks = [
-        { path: '/dsa', label: 'Dashboard', icon: '📊' },
-        { path: '/dsa/problems', label: 'Problems', icon: '🧩' },
-        { path: '/dsa/add', label: 'Add Problem', icon: '➕' }
+    const navLinks: NavLinkItem[] = [
+        { path: '/dsa', label: 'Dashboard', icon: BarChart3 },
+        { path: '/dsa/problems', label: 'Problems', icon: Puzzle },
+        { path: '/dsa/add', label: 'Add Problem', icon: PlusCircle }
     ]
 
     return (
@@ -73,11 +88,12 @@ const Navbar: React.FC<NavbarProps> = ({ user, setUser }) => {
                             <Link
                                 key={link.path}
                                 to={link.path}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isActivePath(link.path)
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors inline-flex items-center ${isActivePath(link.path)
                                     ? 'bg-amber-300 text-slate-950 shadow-[0_10px_25px_rgba(251,191,36,0.25)]'
                                     : 'text-slate-300 hover:text-white hover:bg-white/10'
                                     }`}
                             >
+                                <link.icon className="mr-2 h-4 w-4" />
                                 {link.label}
                             </Link>
                         ))}
@@ -90,9 +106,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, setUser }) => {
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                             className="md:hidden p-2 rounded-md text-slate-300 hover:text-white hover:bg-white/10"
                         >
-                            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                            </svg>
+                            <Menu className="h-6 w-6" />
                         </button>
 
                         {/* Profile Dropdown */}
@@ -125,9 +139,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, setUser }) => {
                                             onClick={() => setIsProfileMenuOpen(false)}
                                             className="flex items-center px-4 py-2 text-sm text-slate-200 hover:bg-white/10"
                                         >
-                                            <svg className="mr-3 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                            </svg>
+                                            <User className="mr-3 h-4 w-4" />
                                             Profile Settings
                                         </Link>
                                         <button
@@ -137,9 +149,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, setUser }) => {
                                             }}
                                             className="flex items-center w-full px-4 py-2 text-sm text-red-300 hover:bg-red-500/15"
                                         >
-                                            <svg className="mr-3 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                            </svg>
+                                            <LogOut className="mr-3 h-4 w-4" />
                                             Logout
                                         </button>
                                     </div>
@@ -163,7 +173,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, setUser }) => {
                                         : 'text-slate-300 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
-                                    <span className="mr-3">{link.icon}</span>
+                                    <link.icon className="mr-3 h-4 w-4" />
                                     {link.label}
                                 </Link>
                             ))}

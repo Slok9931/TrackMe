@@ -1,5 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import {
+  AlertTriangle,
+  BarChart3,
+  Calendar,
+  CalendarCheck2,
+  CalendarDays,
+  CheckCircle2,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Circle,
+  Clock3,
+  Compass,
+  ExternalLink,
+  FileText,
+  Flame,
+  LineChart as LineChartIcon,
+  Plus,
+  Rocket,
+  Target,
+  Trophy,
+  type LucideIcon,
+} from "lucide-react";
 import DSAApiService from "../services/dsaApi";
 import type { UserProblem } from "../services/dsaApi";
 
@@ -100,36 +123,14 @@ const CustomDatePicker: React.FC<{
         className="w-full flex items-center justify-between px-4 py-3 border border-white/15 rounded-xl hover:border-amber-300/50 focus:ring-2 focus:ring-amber-300/70 focus:border-transparent transition-all bg-slate-900/70"
       >
         <span className="flex items-center">
-          <svg
-            className="w-5 h-5 mr-2 text-slate-300"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
+          <CalendarDays className="w-5 h-5 mr-2 text-slate-300" />
           <span className={selectedDate ? "text-slate-100" : "text-slate-400"}>
             {selectedDate ? formatDate(selectedDate) : placeholder}
           </span>
         </span>
-        <svg
+        <ChevronDown
           className={`w-5 h-5 transition-transform text-slate-300 ${isOpen ? "rotate-180" : ""}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
+        />
       </button>
 
       {isOpen && (
@@ -153,19 +154,7 @@ const CustomDatePicker: React.FC<{
                 }
                 className="p-2 hover:bg-white/10 rounded-lg transition-colors"
               >
-                <svg
-                  className="w-5 h-5 text-slate-200"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
+                <ChevronLeft className="w-5 h-5 text-slate-200" />
               </button>
               <h3 className="text-lg font-semibold text-slate-100">
                 {currentMonth.toLocaleDateString("en-US", {
@@ -185,19 +174,7 @@ const CustomDatePicker: React.FC<{
                 }
                 className="p-2 hover:bg-white/10 rounded-lg transition-colors"
               >
-                <svg
-                  className="w-5 h-5 text-slate-200"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
+                <ChevronRight className="w-5 h-5 text-slate-200" />
               </button>
             </div>
 
@@ -297,6 +274,12 @@ interface DifficultyData {
   color: string;
 }
 
+interface RangeOption {
+  value: DateRange;
+  label: string;
+  icon: LucideIcon;
+}
+
 const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
   const [recentProblems, setRecentProblems] = useState<UserProblem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -308,6 +291,14 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [difficultyData, setDifficultyData] = useState<DifficultyData[]>([]);
   const [allUserProblems, setAllUserProblems] = useState<UserProblem[]>([]);
+  const dateRangeOptions: RangeOption[] = [
+    { value: "today", label: "Today", icon: CalendarDays },
+    { value: "last_week", label: "Last Week", icon: BarChart3 },
+    { value: "this_month", label: "This Month", icon: LineChartIcon },
+    { value: "last_6_months", label: "Last 6 Months", icon: Calendar },
+    { value: "last_year", label: "Last Year", icon: Clock3 },
+    { value: "custom", label: "Custom Range", icon: Target },
+  ];
 
   const completedProblems = allUserProblems.filter(
     (problem) => problem.status === "Completed",
@@ -464,28 +455,23 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
   const DateRangeSelector = () => (
     <div className="relative z-40 rounded-3xl border border-white/15 bg-slate-900/55 p-6 mb-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
       <div className="flex items-center mb-6">
-        <span className="text-2xl mr-3">📅</span>
+        <CalendarDays className="w-6 h-6 mr-3 text-amber-200" />
         <h3 className="text-xl font-bold text-white">Analytics Period</h3>
       </div>
       <div className="flex flex-wrap gap-3 mb-6">
-        {[
-          { value: "today", label: "Today", icon: "📅" },
-          { value: "last_week", label: "Last Week", icon: "📊" },
-          { value: "this_month", label: "This Month", icon: "📈" },
-          { value: "last_6_months", label: "Last 6 Months", icon: "📉" },
-          { value: "last_year", label: "Last Year", icon: "📋" },
-          { value: "custom", label: "Custom Range", icon: "🎯" },
-        ].map((option) => (
+        {dateRangeOptions.map((option) => (
           <button
             key={option.value}
-            onClick={() => setSelectedDateRange(option.value as DateRange)}
+            onClick={() => setSelectedDateRange(option.value)}
             className={`px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 transform hover:scale-105 ${
               selectedDateRange === option.value
                 ? "bg-amber-300 text-slate-950 shadow-lg shadow-amber-900/30"
                 : "bg-slate-950/50 text-slate-200 hover:bg-slate-900/80 border border-white/10"
             }`}
           >
-            <span className="mr-2">{option.icon}</span>
+            <span className="mr-2 inline-flex align-middle">
+              <option.icon className="w-4 h-4" />
+            </span>
             {option.label}
           </button>
         ))}
@@ -495,7 +481,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
           <div className="flex flex-col sm:flex-row gap-6">
             <div className="flex-1">
               <label className="block text-sm font-semibold text-slate-200 mb-3">
-                📅 Start Date
+                Start Date
               </label>
               <CustomDatePicker
                 value={customStartDate}
@@ -505,7 +491,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
             </div>
             <div className="flex-1">
               <label className="block text-sm font-semibold text-slate-200 mb-3">
-                📅 End Date
+                End Date
               </label>
               <CustomDatePicker
                 value={customEndDate}
@@ -527,11 +513,17 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
     const rightPadding = 24;
     const topPadding = 20;
     const innerWidth = chartWidth - leftPadding - rightPadding;
+    const [hoveredPoint, setHoveredPoint] = useState<{
+      x: number;
+      y: number;
+      problems: number;
+      date: string;
+    } | null>(null);
 
     return (
       <div className="rounded-3xl border border-white/15 bg-slate-900/55 p-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
         <div className="flex items-center mb-6">
-          <span className="text-2xl mr-3">📈</span>
+          <LineChartIcon className="w-6 h-6 mr-3 text-amber-200" />
           <h3 className="text-xl font-bold text-white">
             Problems Solved Over Time
           </h3>
@@ -601,10 +593,68 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                 r="4"
                 fill="#fbbf24"
                 className="hover:r-6 transition-all cursor-pointer"
-              >
-                <title>{`${d.date}: ${d.problems} problems`}</title>
-              </circle>
+                onMouseEnter={() => {
+                  setHoveredPoint({
+                    x:
+                      leftPadding +
+                      (i / Math.max(chartData.length - 1, 1)) *
+                        innerWidth,
+                    y:
+                      topPadding +
+                      chartHeight -
+                      (d.problems / maxValue) * chartHeight,
+                    problems: d.problems,
+                    date: d.date,
+                  });
+                }}
+                onMouseLeave={() => setHoveredPoint(null)}
+              />
             ))}
+
+            {hoveredPoint && (
+              <g pointerEvents="none">
+                <rect
+                  x={Math.min(
+                    Math.max(hoveredPoint.x - 84, leftPadding),
+                    chartWidth - 170,
+                  )}
+                  y={Math.max(hoveredPoint.y - 52, 8)}
+                  width="160"
+                  height="40"
+                  rx="10"
+                  fill="#0f172a"
+                  stroke="#fbbf24"
+                  strokeWidth="1"
+                  opacity="0.95"
+                />
+                <text
+                  x={Math.min(
+                    Math.max(hoveredPoint.x - 74, leftPadding + 8),
+                    chartWidth - 160,
+                  )}
+                  y={Math.max(hoveredPoint.y - 34, 24)}
+                  fontSize="11"
+                  fill="#f8fafc"
+                >
+                  {`Solved: ${hoveredPoint.problems}`}
+                </text>
+                <text
+                  x={Math.min(
+                    Math.max(hoveredPoint.x - 74, leftPadding + 8),
+                    chartWidth - 160,
+                  )}
+                  y={Math.max(hoveredPoint.y - 20, 38)}
+                  fontSize="10"
+                  fill="#cbd5e1"
+                >
+                  {new Date(hoveredPoint.date).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </text>
+              </g>
+            )}
           </svg>
         </div>
       </div>
@@ -617,11 +667,17 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
       1,
     );
     const barWidth = Math.max(20, Math.min(40, 600 / chartData.length));
+    const [hoveredBar, setHoveredBar] = useState<{
+      x: number;
+      y: number;
+      label: string;
+      value: number;
+    } | null>(null);
 
     return (
       <div className="rounded-3xl border border-white/15 bg-slate-900/55 p-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
         <div className="flex items-center mb-6">
-          <span className="text-2xl mr-3">📊</span>
+          <BarChart3 className="w-6 h-6 mr-3 text-amber-200" />
           <h3 className="text-xl font-bold text-white">
             Difficulty Breakdown Over Time
           </h3>
@@ -663,9 +719,16 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                     height={easyHeight}
                     fill="#10b981"
                     className="hover:opacity-80 transition-opacity"
-                  >
-                    <title>{`${d.date}: ${d.easy} Easy`}</title>
-                  </rect>
+                    onMouseEnter={() =>
+                      setHoveredBar({
+                        x: x + barWidth / 6,
+                        y: 200 - easyHeight,
+                        label: "Easy",
+                        value: d.easy,
+                      })
+                    }
+                    onMouseLeave={() => setHoveredBar(null)}
+                  />
                   {/* Medium */}
                   <rect
                     x={x + barWidth / 3}
@@ -674,9 +737,16 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                     height={mediumHeight}
                     fill="#f59e0b"
                     className="hover:opacity-80 transition-opacity"
-                  >
-                    <title>{`${d.date}: ${d.medium} Medium`}</title>
-                  </rect>
+                    onMouseEnter={() =>
+                      setHoveredBar({
+                        x: x + barWidth / 2,
+                        y: 200 - mediumHeight,
+                        label: "Medium",
+                        value: d.medium,
+                      })
+                    }
+                    onMouseLeave={() => setHoveredBar(null)}
+                  />
                   {/* Hard */}
                   <rect
                     x={x + (2 * barWidth) / 3}
@@ -685,9 +755,16 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                     height={hardHeight}
                     fill="#ef4444"
                     className="hover:opacity-80 transition-opacity"
-                  >
-                    <title>{`${d.date}: ${d.hard} Hard`}</title>
-                  </rect>
+                    onMouseEnter={() =>
+                      setHoveredBar({
+                        x: x + (5 * barWidth) / 6,
+                        y: 200 - hardHeight,
+                        label: "Hard",
+                        value: d.hard,
+                      })
+                    }
+                    onMouseLeave={() => setHoveredBar(null)}
+                  />
                   {/* Date label */}
                   {i % Math.max(1, Math.floor(chartData.length / 10)) === 0 && (
                     <text
@@ -706,6 +783,30 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                 </g>
               );
             })}
+
+            {hoveredBar && (
+              <g pointerEvents="none">
+                <rect
+                  x={Math.max(36, hoveredBar.x - 52)}
+                  y={Math.max(8, hoveredBar.y - 46)}
+                  width="104"
+                  height="34"
+                  rx="9"
+                  fill="#0f172a"
+                  stroke="#fbbf24"
+                  strokeWidth="1"
+                  opacity="0.95"
+                />
+                <text
+                  x={Math.max(44, hoveredBar.x - 44)}
+                  y={Math.max(24, hoveredBar.y - 24)}
+                  fontSize="11"
+                  fill="#f8fafc"
+                >
+                  {`${hoveredBar.label}: ${hoveredBar.value}`}
+                </text>
+              </g>
+            )}
           </svg>
         </div>
       </div>
@@ -714,18 +815,26 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
 
   const PieChart = () => {
     const total = difficultyData.reduce((sum, d) => sum + d.count, 0);
+    const [hoveredSlice, setHoveredSlice] = useState<{
+      x: number;
+      y: number;
+      difficulty: string;
+      count: number;
+      percentage: number;
+    } | null>(null);
+
     if (total === 0) {
       return (
         <div className="rounded-3xl border border-white/15 bg-slate-900/55 p-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
           <div className="flex items-center mb-6">
-            <span className="text-2xl mr-3">🥧</span>
+            <Target className="w-6 h-6 mr-3 text-amber-200" />
             <h3 className="text-xl font-bold text-white">
               Difficulty Distribution
             </h3>
           </div>
           <div className="flex items-center justify-center h-40 text-slate-400">
             <div className="text-center">
-              <span className="text-4xl mb-2 block">📊</span>
+              <BarChart3 className="w-10 h-10 mx-auto mb-2" />
               <p className="text-sm">No data available for selected range</p>
             </div>
           </div>
@@ -741,7 +850,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
     return (
       <div className="rounded-3xl border border-white/15 bg-slate-900/55 p-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
         <div className="flex items-center mb-6">
-          <span className="text-2xl mr-3">🥧</span>
+          <Target className="w-6 h-6 mr-3 text-amber-200" />
           <h3 className="text-xl font-bold text-white">
             Difficulty Distribution
           </h3>
@@ -755,6 +864,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
               const angle = (d.count / total) * 360;
               const startAngle = currentAngle;
               const endAngle = currentAngle + angle;
+              const midAngle = (startAngle + endAngle) / 2;
 
               const x1 =
                 centerX +
@@ -784,19 +894,65 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                   d={pathData}
                   fill={d.color}
                   className="hover:opacity-80 transition-opacity cursor-pointer"
-                >
-                  <title>{`${d.difficulty}: ${d.count} (${percentage.toFixed(1)}%)`}</title>
-                </path>
+                  onMouseEnter={() =>
+                    setHoveredSlice({
+                      x:
+                        centerX +
+                        Math.cos(((midAngle - 90) * Math.PI) / 180) *
+                          (radius * 0.75),
+                      y:
+                        centerY +
+                        Math.sin(((midAngle - 90) * Math.PI) / 180) *
+                          (radius * 0.75),
+                      difficulty: d.difficulty,
+                      count: d.count,
+                      percentage,
+                    })
+                  }
+                  onMouseLeave={() => setHoveredSlice(null)}
+                />
               );
             })}
+
+            {hoveredSlice && (
+              <g pointerEvents="none">
+                <rect
+                  x={Math.max(8, hoveredSlice.x - 66)}
+                  y={Math.max(6, hoveredSlice.y - 44)}
+                  width="132"
+                  height="36"
+                  rx="9"
+                  fill="#0f172a"
+                  stroke="#fbbf24"
+                  strokeWidth="1"
+                  opacity="0.95"
+                />
+                <text
+                  x={Math.max(14, hoveredSlice.x - 58)}
+                  y={Math.max(22, hoveredSlice.y - 22)}
+                  fontSize="11"
+                  fill="#f8fafc"
+                >
+                  {`${hoveredSlice.difficulty}: ${hoveredSlice.count}`}
+                </text>
+                <text
+                  x={Math.max(14, hoveredSlice.x - 58)}
+                  y={Math.max(34, hoveredSlice.y - 10)}
+                  fontSize="10"
+                  fill="#cbd5e1"
+                >
+                  {`${hoveredSlice.percentage.toFixed(1)}%`}
+                </text>
+              </g>
+            )}
 
             {/* Center circle */}
             <circle
               cx={centerX}
               cy={centerY}
               r="30"
-              fill="white"
-              stroke="#e5e7eb"
+              fill="#0f172a"
+              stroke="#334155"
               strokeWidth="2"
             />
             <text
@@ -805,7 +961,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
               textAnchor="middle"
               fontSize="16"
               fontWeight="bold"
-              fill="#334155"
+              fill="#ffffff"
             >
               {total}
             </text>
@@ -814,7 +970,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
               y={centerY + 10}
               textAnchor="middle"
               fontSize="12"
-              fill="#64748b"
+              fill="#ffffff"
             >
               Total
             </text>
@@ -860,7 +1016,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-red-600 mb-4">⚠️</div>
+          <AlertTriangle className="w-10 h-10 text-red-600 mb-4 mx-auto" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
             Error Loading Dashboard
           </h2>
@@ -885,7 +1041,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
         <section className="grid grid-cols-1 xl:grid-cols-2 gap-10 items-center mb-10">
           <div className="order-2 xl:order-1">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-amber-300/30 bg-amber-300/10 text-amber-100 text-sm font-semibold mb-5">
-              <span>🧭</span>
+              <Compass className="w-4 h-4" />
               <span>Mission Control Dashboard</span>
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight mb-3">
@@ -900,7 +1056,10 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                 to="/dsa/add"
                 className="bg-amber-300 hover:bg-amber-200 px-6 py-3 rounded-xl transition-all duration-200 font-semibold text-slate-950 shadow-lg shadow-amber-900/30"
               >
-                Add Problem ✨
+                <span className="inline-flex items-center gap-2">
+                  <Plus className="w-4 h-4" />
+                  Add Problem
+                </span>
               </Link>
               <Link
                 to="/dsa/problems"
@@ -942,10 +1101,16 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                 className="w-full max-h-[420px] object-contain drop-shadow-[0_30px_65px_rgba(0,0,0,0.6)]"
               />
               <div className="absolute right-4 top-6 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold text-slate-100 backdrop-blur-md">
-                🔥 Build consistency daily
+                <span className="inline-flex items-center gap-2">
+                  <Flame className="w-4 h-4" />
+                  Build consistency daily
+                </span>
               </div>
               <div className="absolute left-4 bottom-6 rounded-xl border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-xs font-semibold text-amber-50 backdrop-blur-md">
-                🏆 Level up interview confidence
+                <span className="inline-flex items-center gap-2">
+                  <Trophy className="w-4 h-4" />
+                  Level up interview confidence
+                </span>
               </div>
             </div>
           </div>
@@ -960,7 +1125,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                 <p className="text-3xl font-bold text-white">{completedProblems.length}</p>
               </div>
               <div className="w-12 h-12 bg-amber-300/20 rounded-xl flex items-center justify-center">
-                <span className="text-2xl">✅</span>
+                <CheckCircle2 className="w-6 h-6 text-amber-200" />
               </div>
             </div>
           </div>
@@ -972,7 +1137,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                 <p className="text-3xl font-bold text-emerald-300">{easyCount}</p>
               </div>
               <div className="w-12 h-12 bg-emerald-300/20 rounded-xl flex items-center justify-center">
-                <span className="text-2xl">🟢</span>
+                <Circle className="w-6 h-6 text-emerald-300 fill-current" />
               </div>
             </div>
           </div>
@@ -984,7 +1149,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                 <p className="text-3xl font-bold text-amber-300">{mediumCount}</p>
               </div>
               <div className="w-12 h-12 bg-amber-300/20 rounded-xl flex items-center justify-center">
-                <span className="text-2xl">🟡</span>
+                <Circle className="w-6 h-6 text-amber-300 fill-current" />
               </div>
             </div>
           </div>
@@ -993,10 +1158,10 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-300">Hard Problems</p>
-                <p className="text-3xl font-bold text-rose-300">{hardCount}</p>
+                    <p className="text-3xl font-bold text-red-500">{hardCount}</p>
               </div>
-              <div className="w-12 h-12 bg-rose-300/20 rounded-xl flex items-center justify-center">
-                <span className="text-2xl">🔴</span>
+                  <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center">
+                    <Circle className="w-6 h-6 text-red-500 fill-current" />
               </div>
             </div>
           </div>
@@ -1025,7 +1190,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
         <div className="rounded-3xl border border-white/15 bg-slate-900/55 p-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center">
-              <span className="text-2xl mr-3">🔥</span>
+              <Flame className="w-6 h-6 mr-3 text-amber-200" />
               <h3 className="text-xl font-bold text-white">
                 Recent Problems
               </h3>
@@ -1040,7 +1205,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
 
           {recentProblems.length === 0 ? (
             <div className="text-center py-12 bg-gradient-to-br from-slate-900/60 to-slate-800/40 border border-white/10 rounded-2xl">
-              <div className="text-6xl mb-4">🚀</div>
+              <Rocket className="w-14 h-14 text-amber-200 mx-auto mb-4" />
               <h4 className="text-2xl font-bold text-white mb-3">
                 Ready to Start Your DSA Journey?
               </h4>
@@ -1051,7 +1216,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                 to="/dsa/add"
                 className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-amber-300 to-yellow-200 text-slate-950 rounded-2xl hover:from-amber-200 hover:to-yellow-100 transition-all duration-200 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
               >
-                <span className="mr-2">✨</span>
+                <Plus className="w-5 h-5 mr-2" />
                 Add Your First Problem
               </Link>
             </div>
@@ -1062,10 +1227,9 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                 const difficultyColors = {
                   Easy: "bg-green-100 text-green-800 border-green-200",
                   Medium: "bg-yellow-100 text-yellow-800 border-yellow-200",
-                  Hard: "bg-red-100 text-red-800 border-red-200",
+                  Hard: "bg-red-200 text-red-950 border-red-400",
                 };
-                const statusIcon =
-                  userProblem.status === "Completed" ? "✅" : "⏳";
+                const isCompleted = userProblem.status === "Completed";
 
                 return (
                   <div
@@ -1075,7 +1239,11 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-3">
-                          <span className="text-xl">{statusIcon}</span>
+                          {isCompleted ? (
+                            <CheckCircle2 className="w-5 h-5 text-emerald-300" />
+                          ) : (
+                            <Clock3 className="w-5 h-5 text-amber-300" />
+                          )}
                           <h4 className="font-bold text-slate-100 text-lg group-hover:text-amber-200 transition-colors">
                             {problem.title}
                           </h4>
@@ -1104,7 +1272,10 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                         )}
                         {userProblem.date_solved && (
                           <p className="text-sm text-slate-300">
-                            📅 Solved on{" "}
+                            <span className="inline-flex items-center gap-1 mr-1">
+                              <CalendarCheck2 className="w-4 h-4" />
+                              Solved on
+                            </span>{" "}
                             {new Date(
                               userProblem.date_solved,
                             ).toLocaleDateString("en-US", {
@@ -1120,7 +1291,10 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                           to={`/dsa/problems/${userProblem._id}`}
                           className="px-4 py-2 bg-amber-300/20 text-amber-100 rounded-xl hover:bg-amber-300/30 transition-colors text-sm font-semibold text-center"
                         >
-                          📝 View Details
+                          <span className="inline-flex items-center gap-2">
+                            <FileText className="w-4 h-4" />
+                            View Details
+                          </span>
                         </Link>
                         {problem && (problem as any).platform ? (
                           <a
@@ -1159,7 +1333,10 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
                             rel="noopener noreferrer"
                             className="px-4 py-2 bg-amber-300/20 text-amber-100 rounded-xl hover:bg-amber-300/30 transition-colors text-sm font-semibold text-center"
                           >
-                            🔗 View
+                            <span className="inline-flex items-center gap-2">
+                              <ExternalLink className="w-4 h-4" />
+                              View
+                            </span>
                           </a>
                         )}
                       </div>
