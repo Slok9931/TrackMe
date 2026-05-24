@@ -2,6 +2,33 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import DSAApiService from '../services/dsaApi'
 import type { UserProblem, PaginationInfo } from '../services/dsaApi'
+import {
+    AlertTriangle,
+    BarChart3,
+    BookOpen,
+    CalendarDays,
+    CheckCircle2,
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    Circle,
+    Compass,
+    ExternalLink,
+    Eye,
+    Filter,
+    Flame,
+    Plus,
+    Search,
+    Trash2,
+    X,
+} from 'lucide-react'
+
+const toLocalDateKey = (date: Date) => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+}
 
 // Custom Dropdown Component
 const CustomDropdown: React.FC<{
@@ -14,25 +41,25 @@ const CustomDropdown: React.FC<{
     const selectedOption = options.find(opt => opt.value === value)
 
     return (
-        <div className="relative">
+        <div className="relative z-50">
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center justify-between px-3 py-2 text-sm border border-gray-300 rounded-lg hover:border-gray-400 focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-white"
+                className="w-full flex items-center justify-between rounded-xl border border-white/15 bg-slate-900/75 px-4 py-3 text-sm text-slate-100 shadow-[0_10px_30px_rgba(2,6,23,0.25)] transition-all hover:border-amber-300/40 hover:bg-slate-900/90 focus:border-amber-300/60 focus:ring-2 focus:ring-amber-300/40"
             >
                 <span className="flex items-center">
                     {selectedOption?.icon && <span className="mr-2">{selectedOption.icon}</span>}
-                    {selectedOption?.label || placeholder}
+                    <span className={selectedOption ? 'text-slate-100' : 'text-slate-400'}>
+                        {selectedOption?.label || placeholder}
+                    </span>
                 </span>
-                <svg className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isOpen && (
                 <>
-                    <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-                    <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
+                    <div className="fixed inset-0 z-50" onClick={() => setIsOpen(false)} />
+                    <div className="absolute z-50 mt-2 max-h-60 w-full overflow-auto rounded-xl border border-white/15 bg-slate-900 shadow-[0_24px_60px_rgba(2,6,23,0.55)] backdrop-blur-xl">
                         {options.map((option) => (
                             <button
                                 key={option.value}
@@ -41,7 +68,7 @@ const CustomDropdown: React.FC<{
                                     onChange(option.value)
                                     setIsOpen(false)
                                 }}
-                                className={`w-full flex items-center px-3 py-2 text-sm text-left hover:bg-gray-50 ${value === option.value ? 'bg-green-50 text-green-700' : 'text-gray-700'
+                                className={`flex w-full items-center px-4 py-3 text-left text-sm transition-colors hover:bg-white/5 ${value === option.value ? 'bg-amber-300/10 text-amber-100' : 'text-slate-200'
                                     }`}
                             >
                                 {option.icon && <span className="mr-2">{option.icon}</span>}
@@ -122,57 +149,59 @@ const CustomDatePicker: React.FC<{
         setIsOpen(false)
     }
 
+    useEffect(() => {
+        if (value && value !== (selectedDate ? toLocalDateKey(selectedDate) : undefined)) {
+            setSelectedDate(new Date(value))
+        } else if (!value) {
+            setSelectedDate(null)
+        }
+    }, [value])
+
     return (
-        <div className="relative">
+        <div className="relative z-50">
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center justify-between px-3 py-2 text-sm border border-gray-300 rounded-lg hover:border-gray-400 focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-white"
+                className="w-full flex items-center justify-between rounded-xl border border-white/15 bg-slate-900/75 px-4 py-3 text-sm text-slate-100 shadow-[0_10px_30px_rgba(2,6,23,0.25)] transition-all hover:border-amber-300/40 hover:bg-slate-900/90 focus:border-amber-300/60 focus:ring-2 focus:ring-amber-300/40"
             >
                 <span className="flex items-center">
-                    <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    {selectedDate ? formatDate(selectedDate) : placeholder}
+                    <CalendarDays className="mr-2 h-4 w-4 text-slate-300" />
+                    <span className={selectedDate ? 'text-slate-100' : 'text-slate-400'}>
+                        {selectedDate ? formatDate(selectedDate) : placeholder}
+                    </span>
                 </span>
-                <svg className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isOpen && (
                 <>
-                    <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-                    <div className="absolute z-20 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-4 min-w-64">
+                    <div className="fixed inset-0 z-50" onClick={() => setIsOpen(false)} />
+                    <div className="absolute z-50 mt-2 min-w-80 rounded-xl border border-white/15 bg-slate-900 p-4 shadow-[0_24px_60px_rgba(2,6,23,0.55)] backdrop-blur-xl">
                         {/* Calendar Header */}
                         <div className="flex items-center justify-between mb-4">
                             <button
                                 type="button"
                                 onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
-                                className="p-1 hover:bg-gray-100 rounded"
+                                className="rounded-lg p-2 text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
                             >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                </svg>
+                                <ChevronLeft className="h-4 w-4" />
                             </button>
-                            <h3 className="text-sm font-semibold">
+                            <h3 className="text-sm font-semibold text-white">
                                 {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                             </h3>
                             <button
                                 type="button"
                                 onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
-                                className="p-1 hover:bg-gray-100 rounded"
+                                className="rounded-lg p-2 text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
                             >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
+                                <ChevronRight className="h-4 w-4" />
                             </button>
                         </div>
 
                         {/* Day labels */}
                         <div className="grid grid-cols-7 gap-1 mb-2">
                             {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
-                                <div key={day} className="text-xs font-medium text-gray-500 text-center py-1">
+                                <div key={day} className="py-1 text-center text-xs font-medium text-slate-400">
                                     {day}
                                 </div>
                             ))}
@@ -186,11 +215,11 @@ const CustomDatePicker: React.FC<{
                                         <button
                                             type="button"
                                             onClick={() => handleDateSelect(date)}
-                                            className={`w-full h-full text-xs rounded hover:bg-gray-100 ${isSameDay(date, selectedDate)
-                                                ? 'bg-green-500 text-white hover:bg-green-600'
+                                            className={`h-full w-full rounded-lg text-xs transition-colors hover:bg-white/10 ${isSameDay(date, selectedDate)
+                                                ? 'bg-amber-300 text-slate-950 hover:bg-amber-200'
                                                 : isToday(date)
-                                                    ? 'bg-blue-100 text-blue-700'
-                                                    : 'text-gray-700'
+                                                    ? 'bg-amber-300/20 text-amber-100'
+                                                    : 'text-slate-200'
                                                 }`}
                                         >
                                             {date.getDate()}
@@ -201,11 +230,11 @@ const CustomDatePicker: React.FC<{
                         </div>
 
                         {/* Action buttons */}
-                        <div className="flex justify-between mt-4 pt-3 border-t border-gray-200">
+                        <div className="flex justify-between mt-4 pt-3 border-t border-white/10">
                             <button
                                 type="button"
                                 onClick={clearDate}
-                                className="text-xs text-gray-500 hover:text-gray-700"
+                                className="rounded-lg px-3 py-1 text-xs text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
                             >
                                 Clear
                             </button>
@@ -215,7 +244,7 @@ const CustomDatePicker: React.FC<{
                                     const today = new Date()
                                     handleDateSelect(today)
                                 }}
-                                className="text-xs text-green-600 hover:text-green-700"
+                                className="rounded-lg px-3 py-1 text-xs font-medium text-amber-200 transition-colors hover:bg-amber-300/10 hover:text-amber-100"
                             >
                                 Today
                             </button>
@@ -409,101 +438,47 @@ const ProblemsList: React.FC = () => {
         }
     }
 
-    const getDifficultyColor = (difficulty: string) => {
-        switch (difficulty) {
-            case 'Easy': return 'text-green-600 bg-green-50 border-green-200'
-            case 'Medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200'
-            case 'Hard': return 'text-red-600 bg-red-50 border-red-200'
-            default: return 'text-gray-600 bg-gray-50 border-gray-200'
-        }
-    }
-
     if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
-                    <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse animation-delay-200"></div>
-                    <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse animation-delay-400"></div>
-                </div>
-            </div>
-        )
-    }
+    return (
+      <div className="relative min-h-screen overflow-hidden bg-[#07111f] text-slate-50 flex items-center justify-center">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.18),_transparent_35%),radial-gradient(circle_at_80%_20%,_rgba(16,185,129,0.15),_transparent_28%),linear-gradient(135deg,_#07111f_0%,_#0b1727_45%,_#101b2e_100%)]" />
+        <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:48px_48px]" />
+        <div className="relative flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-slate-900/60 px-8 py-7 backdrop-blur-xl shadow-[0_24px_70px_rgba(2,6,23,0.65)]">
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 bg-amber-300 rounded-full animate-pulse"></div>
+            <div className="w-4 h-4 bg-amber-300 rounded-full animate-pulse animation-delay-200"></div>
+            <div className="w-4 h-4 bg-amber-300 rounded-full animate-pulse animation-delay-400"></div>
+          </div>
+          <p className="text-sm tracking-wide text-slate-300">Loading problems...</p>
+        </div>
+      </div>
+    );
+  }
 
     return (
-        <div className="bg-gray-50">
-            {/* Main Content */}
-            <main className="mx-auto py-8 px-4 sm:px-6 lg:px-8">
-                {/* Header Section */}
+        <div className="relative min-h-screen overflow-hidden bg-[#07111f] text-slate-50">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.18),_transparent_35%),radial-gradient(circle_at_80%_20%,_rgba(16,185,129,0.15),_transparent_28%),linear-gradient(135deg,_#07111f_0%,_#0b1727_45%,_#101b2e_100%)]" />
+      <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:48px_48px]" />
+
+            <main className="relative min-h-screen px-4 py-8 sm:px-6 lg:px-10">
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-6">
                         <div>
-                            <h2 className="text-3xl font-bold text-gray-900">My Problems</h2>
-                            <p className="text-gray-600 mt-1">Track your DSA journey and progress</p>
-                        </div>
-                        <Link
-                            to="/dsa/add"
-                            className="flex items-center px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors shadow-sm"
-                        >
-                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                            Add New Problem
-                        </Link>
-                    </div>
-
-                    {/* Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                        <div className="bg-white rounded-xl border border-gray-200 p-6">
-                            <div className="flex items-center">
-                                <div className="p-2 bg-blue-100 rounded-lg">
-                                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                </div>
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-600">Total Problems</p>
-                                    <p className="text-2xl font-bold text-gray-900">{pagination?.totalItems || 0}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="bg-white rounded-xl border border-gray-200 p-6">
-                            <div className="flex items-center">
-                                <div className="p-2 bg-green-100 rounded-lg">
-                                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-600">Completed</p>
-                                    <p className="text-2xl font-bold text-gray-900">{problems.filter(p => p.status === 'Completed').length}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="bg-white rounded-xl border border-gray-200 p-6">
-                            <div className="flex items-center">
-                                <div className="p-2 bg-orange-100 rounded-lg">
-                                    <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-600">In Progress</p>
-                                    <p className="text-2xl font-bold text-gray-900">{problems.filter(p => p.status === 'Todo').length}</p>
-                                </div>
-                            </div>
+                            <h2 className="text-4xl font-bold text-slate-50 flex items-center gap-3">
+                                <BookOpen className="w-8 h-8 text-amber-300" />
+                                My Problems
+                            </h2>
+                            <p className="text-slate-400 mt-2 text-sm">Track and master your DSA problem-solving journey</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
+                <div className="relative z-50 rounded-3xl border border-white/15 bg-slate-900/55 p-6 mb-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center space-x-2">
-                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z" />
-                            </svg>
-                            <span className="text-lg font-semibold text-gray-900">Filters & Search</span>
+                            <Filter className="w-5 h-5 text-amber-300" />
+                            <span className="text-lg font-semibold text-slate-100">Search & Filter</span>
                         </div>
                         <button
                             onClick={() => {
@@ -515,24 +490,18 @@ const ProblemsList: React.FC = () => {
                                 setDateToFilter('')
                                 setCurrentPage(1)
                             }}
-                            className="text-sm text-gray-500 hover:text-gray-700 flex items-center"
+                            className="text-xs text-slate-400 hover:text-slate-200 flex items-center transition-colors"
                         >
-                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
+                            <BarChart3 className="w-4 h-4 mr-1" />
                             Reset All
                         </button>
                     </div>
 
                     {/* Search */}
-                    <div className="mb-3">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Search Problems</label>
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium text-slate-300 mb-3">Search Problems</label>
                         <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </div>
+                            <Search className="absolute inset-y-0 left-0 ml-3 w-4 h-4 text-slate-400 flex-shrink-0" style={{top: '50%', transform: 'translateY(-50%)'}} />
                             <input
                                 type="text"
                                 value={searchQuery}
@@ -541,7 +510,7 @@ const ProblemsList: React.FC = () => {
                                     setCurrentPage(1)
                                 }}
                                 placeholder="Search by problem title..."
-                                className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:border-2 focus:border-green-500 focus:outline-none"
+                                className="w-full pl-10 pr-4 py-3 text-sm border border-white/15 rounded-xl bg-slate-800/50 text-slate-100 placeholder-slate-500 transition-all hover:border-amber-300/40 focus:border-amber-300/60 focus:ring-2 focus:ring-amber-300/40 focus:outline-none"
                             />
                             {searchQuery && (
                                 <button
@@ -549,11 +518,9 @@ const ProblemsList: React.FC = () => {
                                         setSearchQuery('')
                                         setCurrentPage(1)
                                     }}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-amber-300 transition-colors"
                                 >
-                                    <svg className="h-4 w-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
+                                    <X className="h-4 w-4 text-slate-400" />
                                 </button>
                             )}
                         </div>
@@ -562,7 +529,7 @@ const ProblemsList: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         {/* Status Filter */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                            <label className="block text-sm font-medium text-slate-300 mb-3">Status</label>
                             <CustomDropdown
                                 value={statusFilter}
                                 onChange={(value) => {
@@ -580,7 +547,7 @@ const ProblemsList: React.FC = () => {
 
                         {/* Difficulty Filter */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty</label>
+                            <label className="block text-sm font-medium text-slate-300 mb-3">Difficulty</label>
                             <CustomDropdown
                                 value={difficultyFilter}
                                 onChange={(value) => {
@@ -599,7 +566,7 @@ const ProblemsList: React.FC = () => {
 
                         {/* Date Range */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">From Date</label>
+                            <label className="block text-sm font-medium text-slate-300 mb-3">From Date</label>
                             <div className="space-y-2">
                                 <CustomDatePicker
                                     value={dateFromFilter}
@@ -612,7 +579,7 @@ const ProblemsList: React.FC = () => {
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">To Date</label>
+                            <label className="block text-sm font-medium text-slate-300 mb-3">To Date</label>
                             <div className="space-y-2">
                                 <CustomDatePicker
                                     value={dateToFilter}
@@ -628,45 +595,45 @@ const ProblemsList: React.FC = () => {
 
                     {/* Active Filters */}
                     {(statusFilter !== 'All' || difficultyFilter !== 'All' || searchQuery || dateFromFilter || dateToFilter) && (
-                        <div className="mt-4 pt-4 border-t border-gray-200">
+                        <div className="mt-6 pt-6 border-t border-white/10">
                             <div className="flex items-center space-x-2 text-sm">
-                                <span className="text-gray-500">Active filters:</span>
+                                <span className="text-slate-400">Active filters:</span>
                                 <div className="flex flex-wrap gap-2">
                                     {statusFilter !== 'All' && (
-                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <span className="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium bg-amber-300/15 text-amber-200 border border-amber-300/30">
                                             Status: {statusFilter}
                                             <button
                                                 onClick={() => setStatusFilter('All')}
-                                                className="ml-1 text-green-600 hover:text-green-800"
+                                                className="ml-1.5 text-amber-300 hover:text-amber-100"
                                             >
                                                 ×
                                             </button>
                                         </span>
                                     )}
                                     {difficultyFilter !== 'All' && (
-                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        <span className="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-300/15 text-emerald-200 border border-emerald-300/30">
                                             Difficulty: {difficultyFilter}
                                             <button
                                                 onClick={() => setDifficultyFilter('All')}
-                                                className="ml-1 text-blue-600 hover:text-blue-800"
+                                                className="ml-1.5 text-emerald-300 hover:text-emerald-100"
                                             >
                                                 ×
                                             </button>
                                         </span>
                                     )}
                                     {searchQuery && (
-                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                        <span className="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium bg-blue-300/15 text-blue-200 border border-blue-300/30">
                                             Search: {searchQuery}
                                             <button
                                                 onClick={() => setSearchQuery('')}
-                                                className="ml-1 text-purple-600 hover:text-purple-800"
+                                                className="ml-1.5 text-blue-300 hover:text-blue-100"
                                             >
                                                 ×
                                             </button>
                                         </span>
                                     )}
                                     {(dateFromFilter || dateToFilter) && (
-                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                        <span className="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium bg-orange-300/15 text-orange-200 border border-orange-300/30">
                                             Date: {dateFromFilter && new Date(dateFromFilter).toLocaleDateString()}
                                             {dateFromFilter && dateToFilter && ' - '}
                                             {dateToFilter && new Date(dateToFilter).toLocaleDateString()}
@@ -675,7 +642,7 @@ const ProblemsList: React.FC = () => {
                                                     setDateFromFilter('')
                                                     setDateToFilter('')
                                                 }}
-                                                className="ml-1 text-orange-600 hover:text-orange-800"
+                                                className="ml-1.5 text-orange-300 hover:text-orange-100"
                                             >
                                                 ×
                                             </button>
@@ -689,30 +656,26 @@ const ProblemsList: React.FC = () => {
 
                 {/* Problems Table */}
                 {error ? (
-                    <div className="bg-white rounded-xl border border-gray-200 p-8 text-center shadow-sm">
-                        <div className="text-red-600 mb-4">
-                            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                            </svg>
+                    <div className="rounded-3xl border border-white/15 bg-slate-900/55 p-8 text-center shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
+                        <div className="text-red-400 mb-4">
+                            <AlertTriangle className="w-16 h-16 mx-auto" />
                         </div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Problems</h3>
-                        <p className="text-gray-600 mb-4">{error}</p>
+                        <h3 className="text-lg font-semibold text-slate-100 mb-2">Error Loading Problems</h3>
+                        <p className="text-slate-400 mb-6">{error}</p>
                         <button
                             onClick={fetchProblems}
-                            className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                            className="px-6 py-2.5 bg-amber-300/20 text-amber-200 border border-amber-300/40 rounded-xl hover:bg-amber-300/30 hover:border-amber-300/60 transition-all font-medium text-sm"
                         >
                             Try Again
                         </button>
                     </div>
                 ) : problems.length === 0 ? (
-                    <div className="bg-white rounded-xl border border-gray-200 p-12 text-center shadow-sm">
-                        <div className="text-gray-400 mb-6">
-                            <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
+                    <div className="rounded-3xl border border-white/15 bg-slate-900/55 p-12 text-center shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
+                        <div className="text-slate-400 mb-6">
+                            <Compass className="w-20 h-20 mx-auto" />
                         </div>
-                        <h3 className="text-xl font-medium text-gray-900 mb-2">No problems found</h3>
-                        <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                        <h3 className="text-xl font-semibold text-slate-100 mb-2">No problems found</h3>
+                        <p className="text-slate-400 mb-8 max-w-md mx-auto">
                             {statusFilter !== 'All' || difficultyFilter !== 'All' || platformFilter !== 'All'
                                 ? 'Try adjusting your filters or add some problems to get started.'
                                 : 'Start tracking your DSA journey by adding your first problem.'
@@ -720,62 +683,62 @@ const ProblemsList: React.FC = () => {
                         </p>
                         <Link
                             to="/dsa/add"
-                            className="inline-flex items-center px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                            className="inline-flex items-center px-6 py-3 bg-amber-300/20 text-amber-200 border border-amber-300/40 rounded-xl hover:bg-amber-300/30 hover:border-amber-300/60 transition-all font-medium"
                         >
-                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
+                            <Plus className="w-5 h-5 mr-2" />
                             Add Your First Problem
                         </Link>
                     </div>
                 ) : (
-                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div className="relative z-10 rounded-3xl border border-white/15 bg-slate-900/55 overflow-hidden shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
                         <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <table className="min-w-full divide-y divide-white/10">
+                                <thead>
+                                    <tr className="bg-slate-800/50 border-b border-white/10">
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
                                             Problem
                                         </th>
-                                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
                                             Difficulty
                                         </th>
-                                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
                                             Status
                                         </th>
-                                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
                                             Date Solved
                                         </th>
-                                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
                                             Revisions
                                         </th>
-                                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
                                             Actions
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                                <tbody className="divide-y divide-white/10">
                                     {problems.map((userProblem) => {
                                         const problem = userProblem.problemId as any
                                         return (
-                                            <tr key={userProblem._id} className="hover:bg-gray-50 transition-colors">
+                                            <tr key={userProblem._id} className="hover:bg-white/5 transition-colors border-b border-white/10">
                                                 <td className="px-6 py-4">
                                                     <div className="flex flex-col">
-                                                        <div className="text-sm font-medium text-gray-900 mb-1 flex items-center">
+                                                        <div className="text-sm font-semibold text-slate-100 mb-2 flex items-center">
                                                             <span className="mr-2">
                                                                 {problem.platform === 'gfg' ? <img src="/GFG.png" alt="GeeksforGeeks" className="w-6 h-6 rounded-full" /> : <img src="/Leetcode.png" alt="LeetCode" className="w-6 h-6 rounded-full" />}
                                                             </span>
-                                                            {problem.title}
+                                                            <Link to={`/dsa/problems/${userProblem._id}`} className="hover:text-amber-300 transition-colors">
+                                                                {problem.title}
+                                                            </Link>
                                                         </div>
                                                         {problem.topicTags && problem.topicTags.length > 0 && (
                                                             <div className="flex flex-wrap gap-1">
                                                                 {problem.topicTags.slice(0, 3).map((tag: any) => (
-                                                                    <span key={tag.slug} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                                                                    <span key={tag.slug} className="px-2 py-1 bg-slate-700/50 text-slate-300 text-xs rounded-lg border border-white/10">
                                                                         {tag.name}
                                                                     </span>
                                                                 ))}
                                                                 {problem.topicTags.length > 3 && (
-                                                                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                                                                    <span className="px-2 py-1 bg-slate-700/50 text-slate-300 text-xs rounded-lg border border-white/10">
                                                                         +{problem.topicTags.length - 3}
                                                                     </span>
                                                                 )}
@@ -784,11 +747,17 @@ const ProblemsList: React.FC = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getDifficultyColor(problem.difficulty)}`}>
+                                                    <span className={`inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg ${
+                                                        problem.difficulty === 'Easy'
+                                                            ? 'bg-emerald-300/15 text-emerald-200 border border-emerald-300/30'
+                                                            : problem.difficulty === 'Medium'
+                                                            ? 'bg-orange-300/15 text-orange-200 border border-orange-300/30'
+                                                            : 'bg-red-300/15 text-red-200 border border-red-300/30'
+                                                    }`}>
                                                         {problem.difficulty === 'Easy' && '🟢'}
                                                         {problem.difficulty === 'Medium' && '🟡'}
                                                         {problem.difficulty === 'Hard' && '🔴'}
-                                                        {' '}{problem.difficulty}
+                                                        <span className="ml-1.5">{problem.difficulty}</span>
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4">
@@ -796,25 +765,29 @@ const ProblemsList: React.FC = () => {
                                                         <button
                                                             type="button"
                                                             onClick={() => handleStatusUpdate(userProblem._id, userProblem.status === 'Todo' ? 'Completed' : 'Todo')}
-                                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${userProblem.status === 'Completed' ? 'bg-green-500' : 'bg-gray-200'
-                                                                }`}
+                                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-amber-300/60 focus:ring-offset-2 focus:ring-offset-slate-900 ${
+                                                                userProblem.status === 'Completed'
+                                                                    ? 'bg-emerald-500/30 border border-emerald-300/40'
+                                                                    : 'bg-slate-600/30 border border-white/10'
+                                                            }`}
                                                             role="switch"
                                                             aria-checked={userProblem.status === 'Completed'}
                                                             title={`Toggle to ${userProblem.status === 'Todo' ? 'Completed' : 'Todo'}`}
                                                         >
                                                             <span
-                                                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${userProblem.status === 'Completed' ? 'translate-x-6' : 'translate-x-1'
-                                                                    }`}
+                                                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                                                    userProblem.status === 'Completed' ? 'translate-x-6' : 'translate-x-1'
+                                                                }`}
                                                             />
                                                         </button>
-                                                        {userProblem.status === 'Completed' ? <span className={`text-xs font-medium ${userProblem.status === 'Completed' ? 'text-green-600' : 'text-gray-400'}`}>
-                                                            ✅
-                                                        </span> : <span className={`text-xs font-medium ${userProblem.status === 'Todo' ? 'text-orange-600' : 'text-gray-400'}`}>
-                                                            📋
-                                                        </span>}
+                                                        {userProblem.status === 'Completed' ? (
+                                                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                                        ) : (
+                                                            <Circle className="w-4 h-4 text-slate-500" />
+                                                        )}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 text-sm text-gray-600">
+                                                <td className="px-6 py-4 text-sm text-slate-300">
                                                     {userProblem.date_solved
                                                         ? new Date(userProblem.date_solved).toLocaleDateString('en-US', {
                                                             month: 'short',
@@ -824,52 +797,41 @@ const ProblemsList: React.FC = () => {
                                                         : '-'
                                                     }
                                                 </td>
-                                                <td className="px-6 py-4 text-sm text-gray-600">
+                                                <td className="px-6 py-4 text-sm">
                                                     <button
                                                         onClick={() => handleRevisionClick(userProblem)}
-                                                        className="flex items-center hover:text-green-600 transition-colors cursor-pointer"
+                                                        className="flex items-center hover:text-amber-300 transition-colors cursor-pointer text-slate-400"
                                                         title="View revision history"
                                                     >
-                                                        <svg className="w-4 h-4 text-gray-400 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                                        </svg>
-                                                        {userProblem.revision_history.length}
-                                                        <svg className="w-3 h-3 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                                        </svg>
+                                                        <Flame className="w-4 h-4 text-slate-400 mr-2" />
+                                                        <span className="font-semibold">{userProblem.revision_history.length}</span>
+                                                        <ChevronRight className="w-3 h-3 ml-1 text-slate-500" />
                                                     </button>
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center space-x-2">
                                                         <Link
                                                             to={`/dsa/problems/${userProblem._id}`}
-                                                            className="text-green-600 hover:text-green-700 text-xs font-medium"
-                                                            title="View Details"
+                                                            className="p-2 text-slate-400 hover:text-amber-300 hover:bg-white/5 rounded-lg transition-all"
+                                                            title="View Problem Details"
                                                         >
-                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                            </svg>
+                                                            <Eye className="w-4 h-4" />
                                                         </Link>
                                                         <a
                                                             href={problem.problemUrl}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="text-blue-600 hover:text-blue-700 text-xs font-medium"
-                                                            title="Open in LeetCode"
+                                                            className="p-2 text-slate-400 hover:text-blue-400 hover:bg-white/5 rounded-lg transition-all"
+                                                            title="Open on Platform"
                                                         >
-                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                                            </svg>
+                                                            <ExternalLink className="w-4 h-4" />
                                                         </a>
                                                         <button
                                                             onClick={() => handleDeleteClick(userProblem)}
-                                                            className="text-red-600 hover:text-red-700 text-xs font-medium"
+                                                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-white/5 rounded-lg transition-all"
                                                             title="Delete Problem"
                                                         >
-                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                            </svg>
+                                                            <Trash2 className="w-4 h-4" />
                                                         </button>
                                                     </div>
                                                 </td>
@@ -884,33 +846,30 @@ const ProblemsList: React.FC = () => {
 
                 {/* Pagination */}
                 {pagination && pagination.totalPages > 1 && (
-                    <div className="bg-white rounded-xl border border-gray-200 p-6 mt-6 shadow-sm">
+                    <div className="rounded-3xl border border-white/15 bg-slate-900/55 p-6 mt-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                            <div className="text-sm text-gray-600">
-                                Showing <span className="font-medium">{((currentPage - 1) * 10) + 1}</span> to{' '}
-                                <span className="font-medium">{Math.min(currentPage * 10, pagination.totalItems)}</span> of{' '}
-                                <span className="font-medium">{pagination.totalItems}</span> problems
+                            <div className="text-sm text-slate-300">
+                                Showing <span className="font-semibold text-slate-100">{((currentPage - 1) * 10) + 1}</span> to{' '}
+                                <span className="font-semibold text-slate-100">{Math.min(currentPage * 10, pagination.totalItems)}</span> of{' '}
+                                <span className="font-semibold text-slate-100">{pagination.totalItems}</span> problems
                             </div>
 
                             <div className="flex items-center space-x-2">
                                 <button
                                     onClick={() => setCurrentPage(1)}
                                     disabled={currentPage === 1}
-                                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                                    className="p-2 text-slate-300 border border-white/15 rounded-lg hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center transition-all hover:border-amber-300/40 disabled:border-white/10"
                                 >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                                    </svg>
+                                    <ChevronLeft className="w-4 h-4" />
+                                    <ChevronLeft className="w-4 h-4 -ml-2" />
                                 </button>
 
                                 <button
                                     onClick={() => setCurrentPage(currentPage - 1)}
                                     disabled={currentPage === 1}
-                                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                                    className="px-3 py-2 text-sm text-slate-300 border border-white/15 rounded-lg hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center transition-all hover:border-amber-300/40 disabled:border-white/10"
                                 >
-                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                    </svg>
+                                    <ChevronLeft className="w-4 h-4 mr-1" />
                                     Previous
                                 </button>
 
@@ -931,10 +890,11 @@ const ProblemsList: React.FC = () => {
                                             <button
                                                 key={page}
                                                 onClick={() => setCurrentPage(page)}
-                                                className={`px-3 py-2 text-sm border rounded-lg transition-colors ${currentPage === page
-                                                    ? 'bg-green-500 text-white border-green-500'
-                                                    : 'border-gray-300 hover:bg-gray-50'
-                                                    }`}
+                                                className={`px-3 py-2 text-sm border rounded-lg transition-all ${
+                                                    currentPage === page
+                                                        ? 'bg-amber-300/20 text-amber-200 border-amber-300/40'
+                                                        : 'text-slate-300 border-white/15 hover:bg-white/5 hover:border-amber-300/40'
+                                                }`}
                                             >
                                                 {page}
                                             </button>
@@ -945,37 +905,36 @@ const ProblemsList: React.FC = () => {
                                 <button
                                     onClick={() => setCurrentPage(currentPage + 1)}
                                     disabled={currentPage === pagination.totalPages}
-                                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                                    className="px-3 py-2 text-sm text-slate-300 border border-white/15 rounded-lg hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center transition-all hover:border-amber-300/40 disabled:border-white/10"
                                 >
                                     Next
-                                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                    </svg>
+                                    <ChevronRight className="w-4 h-4 ml-1" />
                                 </button>
 
                                 <button
                                     onClick={() => setCurrentPage(pagination.totalPages)}
                                     disabled={currentPage === pagination.totalPages}
-                                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                                    className="p-2 text-slate-300 border border-white/15 rounded-lg hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center transition-all hover:border-amber-300/40 disabled:border-white/10"
                                 >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                                    </svg>
+                                    <ChevronRight className="w-4 h-4" />
+                                    <ChevronRight className="w-4 h-4 -ml-2" />
                                 </button>
                             </div>
                         </div>
                     </div>
                 )}
-
                 {/* Revision Modal */}
                 {revisionModalOpen && selectedProblem && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="rounded-3xl border border-white/15 bg-slate-900/95 shadow-[0_40px_80px_rgba(2,6,23,0.75)] max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
                             {/* Modal Header */}
-                            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                            <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
                                 <div>
-                                    <h2 className="text-xl font-semibold text-gray-900">Revision History</h2>
-                                    <p className="text-sm text-gray-600 mt-1">
+                                    <h2 className="text-2xl font-bold text-slate-50 flex items-center gap-2">
+                                        <Flame className="w-6 h-6 text-amber-300" />
+                                        Revision History
+                                    </h2>
+                                    <p className="text-sm text-slate-400 mt-1">
                                         {(selectedProblem.problemId as any).title}
                                     </p>
                                 </div>
@@ -985,37 +944,34 @@ const ProblemsList: React.FC = () => {
                                         setSelectedProblem(null)
                                         setNewRevisionNote('')
                                     }}
-                                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                                    className="text-slate-400 hover:text-slate-200 transition-colors p-2 hover:bg-white/5 rounded-lg"
                                 >
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
+                                    <X className="w-6 h-6" />
                                 </button>
                             </div>
 
                             {/* Modal Content */}
-                            <div className="flex-1 overflow-y-auto h-[40vh]">
+                            <div className="flex-1 overflow-y-auto h-[40vh] px-6 py-6">
                                 {selectedProblem.revision_history.length === 0 ? (
-                                    <div className="p-8 text-center">
-                                        <div className="text-gray-400 mb-4">
-                                            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                            </svg>
+                                    <div className="py-16 text-center">
+                                        <div className="text-slate-500 mb-4">
+                                            <BookOpen className="w-16 h-16 mx-auto" />
                                         </div>
-                                        <h3 className="text-lg font-medium text-gray-900 mb-2">No revisions yet</h3>
-                                        <p className="text-gray-600">Start tracking your revision notes for this problem.</p>
+                                        <h3 className="text-lg font-semibold text-slate-200 mb-2">No revisions yet</h3>
+                                        <p className="text-slate-400">Start tracking your revision notes for this problem.</p>
                                     </div>
                                 ) : (
-                                    <div className="p-6 space-y-4">
+                                    <div className="space-y-4">
                                         {selectedProblem.revision_history
                                             .sort((a, b) => b.revision_no - a.revision_no)
                                             .map((revision) => (
-                                                <div key={revision.revision_no} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <span className="text-sm font-medium text-green-600">
+                                                <div key={revision.revision_no} className="bg-slate-800/50 rounded-xl p-4 border border-white/10 hover:border-white/20 transition-colors">
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <span className="text-sm font-semibold text-amber-300 flex items-center gap-2">
+                                                            <Flame className="w-4 h-4" />
                                                             Revision #{revision.revision_no}
                                                         </span>
-                                                        <span className="text-xs text-gray-500">
+                                                        <span className="text-xs text-slate-400">
                                                             {new Date(revision.revision_date).toLocaleDateString('en-US', {
                                                                 month: 'short',
                                                                 day: 'numeric',
@@ -1025,7 +981,7 @@ const ProblemsList: React.FC = () => {
                                                             })}
                                                         </span>
                                                     </div>
-                                                    <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                                                    <div className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">
                                                         {revision.revision_notes}
                                                     </div>
                                                 </div>
@@ -1035,18 +991,21 @@ const ProblemsList: React.FC = () => {
                             </div>
 
                             {/* Add New Revision Section */}
-                            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-                                <h3 className="text-sm font-medium text-gray-900 mb-3">Add New Revision</h3>
+                            <div className="px-6 py-5 border-t border-white/10 bg-slate-800/30">
+                                <h3 className="text-sm font-semibold text-slate-100 mb-3 flex items-center gap-2">
+                                    <Plus className="w-4 h-4 text-amber-300" />
+                                    Add New Revision
+                                </h3>
                                 <div className="space-y-3">
                                     <textarea
                                         value={newRevisionNote}
                                         onChange={(e) => setNewRevisionNote(e.target.value)}
                                         placeholder="What did you learn or improve in this revision?&#10;&#10;Example:&#10;- Optimized the approach from O(n²) to O(n)&#10;- Better understood the two-pointer technique&#10;- Fixed edge case with empty arrays"
-                                        rows={8}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none text-sm"
+                                        rows={6}
+                                        className="w-full px-4 py-3 border border-white/15 rounded-xl bg-slate-800/50 text-slate-100 placeholder-slate-500 focus:border-amber-300/60 focus:ring-2 focus:ring-amber-300/40 focus:outline-none resize-none text-sm transition-all"
                                     />
                                     <div className="flex items-center justify-between">
-                                        <span className="text-xs text-gray-500">
+                                        <span className="text-xs text-slate-400">
                                             Track your learning progress and improvements
                                         </span>
                                         <div className="flex space-x-2">
@@ -1056,28 +1015,23 @@ const ProblemsList: React.FC = () => {
                                                     setSelectedProblem(null)
                                                     setNewRevisionNote('')
                                                 }}
-                                                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+                                                className="px-4 py-2 text-sm text-slate-300 hover:text-slate-100 hover:bg-white/5 rounded-lg transition-colors"
                                             >
                                                 Cancel
                                             </button>
                                             <button
                                                 onClick={handleAddRevision}
                                                 disabled={!newRevisionNote.trim() || addingRevision}
-                                                className="px-4 py-2 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                                                className="px-4 py-2 text-sm bg-amber-300/20 text-amber-200 border border-amber-300/40 rounded-lg hover:bg-amber-300/30 hover:border-amber-300/60 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center font-medium"
                                             >
                                                 {addingRevision ? (
                                                     <>
-                                                        <svg className="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                        </svg>
+                                                        <div className="w-4 h-4 mr-2 border-2 border-amber-300/40 border-t-amber-300 rounded-full animate-spin" />
                                                         Adding...
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                                        </svg>
+                                                        <Plus className="w-4 h-4 mr-2" />
                                                         Add
                                                     </>
                                                 )}
@@ -1092,39 +1046,35 @@ const ProblemsList: React.FC = () => {
 
                 {/* Delete Confirmation Modal */}
                 {deleteModalOpen && problemToDelete && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="rounded-3xl border border-white/15 bg-slate-900/95 shadow-[0_40px_80px_rgba(2,6,23,0.75)] max-w-md w-full overflow-hidden">
                             {/* Modal Header */}
-                            <div className="px-6 py-4 border-b border-gray-200">
+                            <div className="px-6 py-5 border-b border-white/10">
                                 <div className="flex items-center">
-                                    <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mr-4">
-                                        <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                        </svg>
+                                    <div className="flex items-center justify-center w-12 h-12 bg-red-500/20 rounded-full mr-4 border border-red-500/30">
+                                        <AlertTriangle className="w-6 h-6 text-red-400" />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-semibold text-gray-900">Delete Problem</h3>
-                                        <p className="text-sm text-gray-600 mt-1">This action cannot be undone</p>
+                                        <h3 className="text-lg font-semibold text-slate-50">Delete Problem</h3>
+                                        <p className="text-sm text-slate-400 mt-1">This action cannot be undone</p>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Modal Content */}
-                            <div className="px-6 py-4">
-                                <p className="text-gray-700 mb-4">
-                                    Are you sure you want to remove <span className="font-semibold text-gray-900">"{(problemToDelete.problemId as any).title}"</span> from your tracking list?
+                            <div className="px-6 py-5">
+                                <p className="text-slate-300 mb-4">
+                                    Are you sure you want to remove <span className="font-semibold text-slate-100">"{(problemToDelete.problemId as any).title}"</span> from your tracking list?
                                 </p>
-                                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
                                     <div className="flex items-start">
-                                        <svg className="w-5 h-5 text-red-500 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                        </svg>
-                                        <div className="text-sm text-red-700">
-                                            <p className="font-medium">This will permanently delete:</p>
-                                            <ul className="mt-1 list-disc list-inside space-y-1">
-                                                <li>Your progress tracking for this problem</li>
-                                                <li>All revision notes ({problemToDelete.revision_history.length} revisions)</li>
-                                                <li>Your solution notes and completion status</li>
+                                        <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" />
+                                        <div className="text-sm text-red-300">
+                                            <p className="font-semibold mb-2">This will permanently delete:</p>
+                                            <ul className="space-y-1 text-red-200/90">
+                                                <li>• Your progress tracking for this problem</li>
+                                                <li>• All revision notes ({problemToDelete.revision_history.length} revisions)</li>
+                                                <li>• Your solution notes and completion status</li>
                                             </ul>
                                         </div>
                                     </div>
@@ -1132,35 +1082,30 @@ const ProblemsList: React.FC = () => {
                             </div>
 
                             {/* Modal Actions */}
-                            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-end space-x-3">
+                            <div className="px-6 py-4 border-t border-white/10 bg-slate-800/30 flex items-center justify-end space-x-3">
                                 <button
                                     onClick={() => {
                                         setDeleteModalOpen(false)
                                         setProblemToDelete(null)
                                     }}
                                     disabled={deleting}
-                                    className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50"
+                                    className="px-4 py-2 text-sm text-slate-300 hover:text-slate-100 hover:bg-white/5 rounded-lg transition-colors disabled:opacity-50"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleDeleteConfirm}
                                     disabled={deleting}
-                                    className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                                    className="px-4 py-2 text-sm bg-red-500/20 text-red-200 border border-red-500/30 rounded-lg hover:bg-red-500/30 hover:border-red-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center font-medium"
                                 >
                                     {deleting ? (
                                         <>
-                                            <svg className="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                            </svg>
+                                            <div className="w-4 h-4 mr-2 border-2 border-red-400/40 border-t-red-400 rounded-full animate-spin" />
                                             Deleting...
                                         </>
                                     ) : (
                                         <>
-                                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
+                                            <Trash2 className="w-4 h-4 mr-2" />
                                             Delete Problem
                                         </>
                                     )}
