@@ -455,7 +455,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
   const DateRangeSelector = () => (
     <div className="relative z-40 rounded-3xl border border-white/15 bg-slate-900/55 p-6 mb-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
       <div className="flex items-center mb-6">
-        <CalendarDays className="w-6 h-6 mr-3 text-amber-200" />
+        <CalendarDays className="w-6 h-6 mr-3 text-amber-300" />
         <h3 className="text-xl font-bold text-white">Analytics Period</h3>
       </div>
       <div className="flex flex-wrap gap-3 mb-6">
@@ -523,7 +523,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
     return (
       <div className="rounded-3xl border border-white/15 bg-slate-900/55 p-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
         <div className="flex items-center mb-6">
-          <LineChartIcon className="w-6 h-6 mr-3 text-amber-200" />
+          <LineChartIcon className="w-6 h-6 mr-3 text-amber-300" />
           <h3 className="text-xl font-bold text-white">
             Problems Solved Over Time
           </h3>
@@ -677,7 +677,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
     return (
       <div className="rounded-3xl border border-white/15 bg-slate-900/55 p-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
         <div className="flex items-center mb-6">
-          <BarChart3 className="w-6 h-6 mr-3 text-amber-200" />
+          <BarChart3 className="w-6 h-6 mr-3 text-amber-300" />
           <h3 className="text-xl font-bold text-white">
             Difficulty Breakdown Over Time
           </h3>
@@ -827,7 +827,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
       return (
         <div className="rounded-3xl border border-white/15 bg-slate-900/55 p-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
           <div className="flex items-center mb-6">
-            <Target className="w-6 h-6 mr-3 text-amber-200" />
+            <Target className="w-6 h-6 mr-3 text-amber-300" />
             <h3 className="text-xl font-bold text-white">
               Difficulty Distribution
             </h3>
@@ -850,7 +850,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
     return (
       <div className="rounded-3xl border border-white/15 bg-slate-900/55 p-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
         <div className="flex items-center mb-6">
-          <Target className="w-6 h-6 mr-3 text-amber-200" />
+          <Target className="w-6 h-6 mr-3 text-amber-300" />
           <h3 className="text-xl font-bold text-white">
             Difficulty Distribution
           </h3>
@@ -1134,10 +1134,10 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-300">Easy Problems</p>
-                <p className="text-3xl font-bold text-emerald-300">{easyCount}</p>
+                <p className="text-3xl font-bold text-emerald-500">{easyCount}</p>
               </div>
               <div className="w-12 h-12 bg-emerald-300/20 rounded-xl flex items-center justify-center">
-                <Circle className="w-6 h-6 text-emerald-300 fill-current" />
+                <Circle className="w-6 h-6 text-emerald-500 fill-current" />
               </div>
             </div>
           </div>
@@ -1190,7 +1190,7 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
         <div className="rounded-3xl border border-white/15 bg-slate-900/55 p-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center">
-              <Flame className="w-6 h-6 mr-3 text-amber-200" />
+              <Flame className="w-6 h-6 mr-3 text-amber-300" />
               <h3 className="text-xl font-bold text-white">
                 Recent Problems
               </h3>
