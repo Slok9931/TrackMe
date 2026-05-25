@@ -1,53 +1,41 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { marked } from 'marked'
+import {
+    AlertTriangle,
+    CalendarDays,
+    CheckCircle2,
+    ChevronLeft,
+    Code2,
+    ExternalLink,
+    FileText,
+    Tag,
+    Target,
+} from 'lucide-react'
 import DSAApiService from '../services/dsaApi'
 import type { UserProblem } from '../services/dsaApi'
+import { LoadingState } from './problems/LoadingState'
+import ProblemEditorWorkspace from './problems/ProblemEditorWorkspace'
 
-// Custom CSS for problem content styling and resizable panels
-const customStyles = `
-.resize-handle {
-    width: 4px;
-    background-color: #e5e7eb;
-    position: relative;
-    z-index: 10;
-    flex-shrink: 0;
-    transition: all 0.2s ease-in-out;
-}
-
-.resize-handle:hover {
-    background-color: #3b82f6;
-    width: 6px;
-}
-
-.resize-handle:active {
-    background-color: #1d4ed8;
-    width: 6px;
-}
-
-.resizable-panel {
-    min-width: 200px;
-    max-width: 70%;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.resizable-panel.minimized {
-    min-width: 40px !important;
-    max-width: 60px !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+const problemContentStyles = `
+.problem-content {
+    color: #cbd5e1;
 }
 
 .problem-content pre {
-    background-color: #f9fafb !important;
-    border: 1px solid #e5e7eb !important;
-    color: #374151 !important;
+    background-color: rgba(2, 6, 23, 0.72) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 1rem !important;
+    padding: 1rem !important;
+    margin: 1rem 0 !important;
+    color: #e2e8f0 !important;
     white-space: pre-wrap !important;
     word-wrap: break-word !important;
     line-height: 1.6 !important;
 }
 
 .problem-content pre strong {
-    color: #111827 !important;
+    color: #f8fafc !important;
     font-weight: 600 !important;
 }
 
@@ -59,19 +47,19 @@ const customStyles = `
 }
 
 .problem-content code:not(pre code) {
-    background-color: #f0fdf4 !important;
-    color: #15803d !important;
+    background-color: rgba(251, 191, 36, 0.12) !important;
+    color: #fde68a !important;
     padding: 0.125rem 0.375rem !important;
-    border-radius: 0.25rem !important;
+    border-radius: 0.375rem !important;
     font-size: 0.875rem !important;
 }
 
 .problem-content blockquote {
-    border-left: 4px solid #3b82f6 !important;
+    border-left: 4px solid #f59e0b !important;
     padding-left: 1rem !important;
     margin: 1rem 0 !important;
     font-style: italic !important;
-    color: #6b7280 !important;
+    color: #cbd5e1 !important;
 }
 
 .problem-content table {
@@ -82,19 +70,19 @@ const customStyles = `
 
 .problem-content th,
 .problem-content td {
-    border: 1px solid #d1d5db !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
     padding: 0.5rem 0.75rem !important;
     text-align: left !important;
 }
 
 .problem-content th {
-    background-color: #f9fafb !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
     font-weight: 600 !important;
-    color: #111827 !important;
+    color: #f8fafc !important;
 }
 
 .problem-content td {
-    color: #374151 !important;
+    color: #cbd5e1 !important;
 }
 
 .problem-content ul,
@@ -106,13 +94,13 @@ const customStyles = `
 .problem-content li {
     margin-bottom: 0.25rem !important;
     line-height: 1.6 !important;
-    color: #374151 !important;
+    color: #cbd5e1 !important;
 }
 
 .problem-content p {
     margin-bottom: 1rem !important;
-    line-height: 1.6 !important;
-    color: #374151 !important;
+    line-height: 1.7 !important;
+    color: #cbd5e1 !important;
 }
 
 .problem-content h1,
@@ -121,8 +109,8 @@ const customStyles = `
 .problem-content h4,
 .problem-content h5,
 .problem-content h6 {
-    color: #111827 !important;
-    font-weight: 600 !important;
+    color: #f8fafc !important;
+    font-weight: 700 !important;
     margin-top: 1.5rem !important;
     margin-bottom: 0.75rem !important;
 }
@@ -131,7 +119,6 @@ const customStyles = `
 .problem-content h2 { font-size: 1.25rem !important; }
 .problem-content h3 { font-size: 1.125rem !important; }
 
-/* GFG-specific content styling */
 .problem-content span[style*="font-size: 14pt"] {
     font-size: 1rem !important;
 }
@@ -142,8 +129,8 @@ const customStyles = `
 
 .problem-content strong,
 .problem-content b {
-    font-weight: 600 !important;
-    color: #111827 !important;
+    font-weight: 700 !important;
+    color: #f8fafc !important;
 }
 
 .problem-content sup {
@@ -156,15 +143,13 @@ const customStyles = `
     vertical-align: sub !important;
 }
 
-/* GFG Examples and Input/Output formatting */
-.problem-content pre,
 .problem-content div[style*="background"] {
-    background-color: #f9fafb !important;
-    border: 1px solid #e5e7eb !important;
-    border-radius: 0.375rem !important;
+    background-color: rgba(2, 6, 23, 0.72) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 1rem !important;
     padding: 1rem !important;
     margin: 1rem 0 !important;
-    color: #374151 !important;
+    color: #e2e8f0 !important;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
     font-size: 0.875rem !important;
     line-height: 1.6 !important;
@@ -177,149 +162,28 @@ const ProblemDetail: React.FC = () => {
     const [userProblem, setUserProblem] = useState<UserProblem | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [saving, setSaving] = useState(false)
 
-    // Edit states
     const [editData, setEditData] = useState({
         status: 'Todo' as 'Todo' | 'Completed',
-        notes: ''
+        notes: '',
     })
     const [implementationCode, setImplementationCode] = useState('')
     const [aiLoading, setAiLoading] = useState(false)
 
-    // Resizable panel states
-    const [panelWidths, setPanelWidths] = useState([33.33, 33.33, 33.34])
-    const [isResizing, setIsResizing] = useState(false)
-    const [resizePanel, setResizePanel] = useState<number | null>(null)
-    const [minimizedPanels, setMinimizedPanels] = useState<boolean[]>([false, false, false])
-
     useEffect(() => {
         if (id) {
-            fetchProblemDetail()
+            void fetchProblemDetail()
         }
     }, [id])
-
-    // Resize functionality
-    useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            if (!isResizing || resizePanel === null) return
-
-            const container = document.querySelector('.resize-container') as HTMLElement
-            if (!container) return
-
-            const containerRect = container.getBoundingClientRect()
-            const mouseX = e.clientX - containerRect.left
-            const containerWidth = containerRect.width
-            const mousePercentage = (mouseX / containerWidth) * 100
-
-            const newWidths = [...panelWidths]
-            const visiblePanels = minimizedPanels.map((minimized, index) => ({ index, minimized }))
-                .filter(panel => !panel.minimized)
-
-            if (visiblePanels.length < 2) return
-
-            if (resizePanel === 0 && !minimizedPanels[0] && !minimizedPanels[1]) {
-                // Resizing between panel 0 and 1
-                const minWidth = 10
-                const maxWidth = 90
-                const newPanel0Width = Math.max(minWidth, Math.min(maxWidth, mousePercentage))
-                const remainingWidth = 100 - newPanel0Width
-
-                if (!minimizedPanels[2]) {
-                    const panel1Ratio = panelWidths[1] / (panelWidths[1] + panelWidths[2])
-                    newWidths[0] = newPanel0Width
-                    newWidths[1] = remainingWidth * panel1Ratio
-                    newWidths[2] = remainingWidth * (1 - panel1Ratio)
-                } else {
-                    newWidths[0] = newPanel0Width
-                    newWidths[1] = remainingWidth
-                    newWidths[2] = 0
-                }
-            } else if (resizePanel === 1 && !minimizedPanels[1] && !minimizedPanels[2]) {
-                // Resizing between panel 1 and 2
-                const panel0Width = minimizedPanels[0] ? 0 : panelWidths[0]
-                const remainingWidth = 100 - panel0Width
-                const minWidth = 10
-                const maxWidth = remainingWidth - 10
-
-                const panel1RelativePos = mousePercentage - panel0Width
-                const newPanel1Width = Math.max(minWidth, Math.min(maxWidth, panel1RelativePos))
-                const newPanel2Width = remainingWidth - newPanel1Width
-
-                newWidths[1] = newPanel1Width
-                newWidths[2] = newPanel2Width
-            }
-
-            setPanelWidths(newWidths)
-        }
-
-        const handleMouseUp = () => {
-            setIsResizing(false)
-            setResizePanel(null)
-        }
-
-        if (isResizing) {
-            document.addEventListener('mousemove', handleMouseMove)
-            document.addEventListener('mouseup', handleMouseUp)
-        }
-
-        return () => {
-            document.removeEventListener('mousemove', handleMouseMove)
-            document.removeEventListener('mouseup', handleMouseUp)
-        }
-    }, [isResizing, resizePanel, panelWidths])
-
-    const handleResizeStart = (panelIndex: number) => {
-        setIsResizing(true)
-        setResizePanel(panelIndex)
-    }
-
-    const togglePanelMinimized = (panelIndex: number) => {
-        const newMinimizedPanels = [...minimizedPanels]
-        newMinimizedPanels[panelIndex] = !newMinimizedPanels[panelIndex]
-
-        setMinimizedPanels(newMinimizedPanels)
-
-        // Recalculate panel widths
-        const newWidths = [...panelWidths]
-        const minimizedWidth = 1.5 // 1.5% width for minimized panels
-
-        // Count total minimized panels
-        const minimizedCount = newMinimizedPanels.filter(Boolean).length
-        const totalMinimizedWidth = minimizedCount * minimizedWidth
-        const availableWidth = 100 - totalMinimizedWidth
-
-        // Count visible (non-minimized) panels
-        const visiblePanelIndices = newMinimizedPanels
-            .map((minimized, index) => ({ index, minimized }))
-            .filter(panel => !panel.minimized)
-            .map(panel => panel.index)
-
-        // Set minimized panels to small width
-        newMinimizedPanels.forEach((minimized, index) => {
-            if (minimized) {
-                newWidths[index] = minimizedWidth
-            }
-        })
-
-        // Distribute remaining width among visible panels
-        if (visiblePanelIndices.length > 0) {
-            const widthPerVisiblePanel = availableWidth / visiblePanelIndices.length
-            visiblePanelIndices.forEach(index => {
-                newWidths[index] = widthPerVisiblePanel
-            })
-        }
-
-        setPanelWidths(newWidths)
-    }
 
     const fetchProblemDetail = async () => {
         try {
             setLoading(true)
             setError(null)
 
-            // Get single problem by fetching all and filtering (since we don't have a single endpoint)
             const response = await DSAApiService.getUserProblems({ limit: 1000 })
-            const problem = response.userProblems.find(p => p._id === id)
+            const problem = response.userProblems.find((item) => item._id === id)
 
             if (!problem) {
                 setError('Problem not found')
@@ -329,11 +193,10 @@ const ProblemDetail: React.FC = () => {
             setUserProblem(problem)
             setEditData({
                 status: problem.status,
-                notes: problem.notes
+                notes: problem.notes || '',
             })
-
-        } catch (error: any) {
-            console.error('Error fetching problem:', error)
+        } catch (fetchError: any) {
+            console.error('Error fetching problem:', fetchError)
             setError('Failed to load problem details')
         } finally {
             setLoading(false)
@@ -344,560 +207,290 @@ const ProblemDetail: React.FC = () => {
         if (!userProblem) return
 
         try {
+            setSaving(true)
             await DSAApiService.updateUserProblem(userProblem._id, editData)
-            fetchProblemDetail()
-        } catch (error: any) {
-            console.error('Error updating problem:', error)
+            await fetchProblemDetail()
+        } catch (updateError: any) {
+            console.error('Error updating problem:', updateError)
             alert('Failed to update problem')
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    const handleGenerateSummary = async () => {
+        if (!implementationCode.trim()) {
+            alert('Please paste implementation code first')
+            return false
+        }
+
+        try {
+            setAiLoading(true)
+            const response = await DSAApiService.generateAiSummary(implementationCode, editData.notes)
+            setEditData((previous) => ({
+                ...previous,
+                notes: previous.notes.trim()
+                    ? `${response.summary}\n\n${previous.notes}`
+                    : response.summary,
+            }))
+            return true
+        } catch (generateError: any) {
+            console.error('Error generating summary:', generateError)
+            const errorMessage = generateError?.response?.data?.details || generateError?.response?.data?.error || generateError?.message || 'Failed to generate summary'
+            alert(errorMessage)
+            return false
+        } finally {
+            setAiLoading(false)
         }
     }
 
     const getDifficultyColor = (difficulty: string) => {
         switch (difficulty) {
-            case 'Easy': return 'text-green-600 bg-green-50 border-green-200'
-            case 'Medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200'
-            case 'Hard': return 'text-red-600 bg-red-50 border-red-200'
-            default: return 'text-gray-600 bg-gray-50 border-gray-200'
+            case 'Easy':
+                return 'border-emerald-300/30 bg-emerald-300/10 text-emerald-100'
+            case 'Medium':
+                return 'border-amber-300/30 bg-amber-300/10 text-amber-100'
+            case 'Hard':
+                return 'border-rose-300/30 bg-rose-300/10 text-rose-100'
+            default:
+                return 'border-white/15 bg-white/5 text-slate-200'
         }
     }
 
     const getStatusColor = (status: string) => {
         return status === 'Completed'
-            ? 'text-green-600 bg-green-50 border-green-200'
-            : 'text-gray-600 bg-gray-50 border-gray-200'
+            ? 'border-emerald-300/30 bg-emerald-300/10 text-emerald-100'
+            : 'border-slate-500/30 bg-slate-500/10 text-slate-200'
     }
 
     if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
-                    <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse animation-delay-200"></div>
-                    <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse animation-delay-400"></div>
-                </div>
-            </div>
-        )
+        return <LoadingState />
     }
 
     if (error || !userProblem) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="text-red-600 mb-4">⚠️</div>
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Problem Not Found</h2>
-                    <p className="text-gray-600 mb-4">{error || 'The requested problem could not be found.'}</p>
-                    <Link
-                        to="/dsa/problems"
-                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                    >
-                        Back to Problems
-                    </Link>
+            <div className="relative min-h-screen overflow-hidden bg-[#07111f] text-slate-50">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.18),_transparent_35%),radial-gradient(circle_at_80%_20%,_rgba(16,185,129,0.15),_transparent_28%),linear-gradient(135deg,_#07111f_0%,_#0b1727_45%,_#101b2e_100%)]" />
+                <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:48px_48px]" />
+
+                <div className="relative flex min-h-screen items-center justify-center p-6">
+                    <div className="max-w-lg rounded-[2rem] border border-white/15 bg-slate-900/65 p-8 text-center shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
+                        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-red-300/20 bg-red-300/10 text-red-200">
+                            <AlertTriangle className="h-6 w-6" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-slate-50">Problem not found</h2>
+                        <p className="mt-3 text-sm leading-6 text-slate-400">
+                            {error || 'The requested problem could not be found.'}
+                        </p>
+                        <div className="mt-6 flex items-center justify-center">
+                            <Link
+                                to="/dsa/problems"
+                                className="inline-flex items-center gap-2 rounded-xl bg-amber-300 px-5 py-3 font-semibold text-slate-950 shadow-lg shadow-amber-900/20 transition-all hover:bg-amber-200"
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                                Back to Problems
+                            </Link>
+                        </div>
+                    </div>
                 </div>
             </div>
         )
     }
 
-    const problem = userProblem.problemId as any
-    console.log(problem)
+    const problem = typeof userProblem.problemId === 'string' ? null : (userProblem.problemId as any)
 
-    return (
-        <div className="bg-gray-50">
-            {/* Custom Styles */}
-            <style dangerouslySetInnerHTML={{ __html: customStyles }} />
-
-
-
-            {/* Main Content Area */}
-            <div className="flex h-[calc(92vh)] relative resize-container transition-all duration-300 ease-out">
-                {/* Left Panel - Problem Description */}
-                <div
-                    className={`bg-white border-r border-gray-200 overflow-y-auto overflow-x-hidden m-2 border rounded-md resizable-panel transition-all duration-300 ease-in-out ${minimizedPanels[0] ? 'minimized' : ''}`}
-                    style={{ width: `${panelWidths[0]}%` }}
-                >
-                    {minimizedPanels[0] ? (
-                        /* Minimized State */
-                        <div className="h-full flex flex-col bg-gray-50 transition-all duration-300 ease-in-out">
-                            <button
-                                onClick={() => togglePanelMinimized(0)}
-                                className="p-2 hover:bg-gray-200 transition-all duration-200 border-b border-gray-200"
-                                title="Expand Problem Description panel"
-                            >
-                                <svg className="w-4 h-4 text-gray-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
-                            </button>
-                            <div className="flex-1 flex items-center justify-center">
-                                <div className="writing-mode-vertical text-xs text-gray-500 font-medium transform -rotate-90 whitespace-nowrap">
-                                    Problem Description
-                                </div>
-                            </div>
+    if (!problem) {
+        return (
+            <div className="relative min-h-screen overflow-hidden bg-[#07111f] text-slate-50">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.18),_transparent_35%),radial-gradient(circle_at_80%_20%,_rgba(16,185,129,0.15),_transparent_28%),linear-gradient(135deg,_#07111f_0%,_#0b1727_45%,_#101b2e_100%)]" />
+                <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:48px_48px]" />
+                <div className="relative flex min-h-screen items-center justify-center p-6">
+                    <div className="max-w-lg rounded-[2rem] border border-white/15 bg-slate-900/65 p-8 text-center shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
+                        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-300/20 bg-amber-300/10 text-amber-200">
+                            <FileText className="h-6 w-6" />
                         </div>
-                    ) : (
-                        /* Expanded State */
-                        <>
-                            <div className="p-6">
-                                {/* Problem Info */}
-                                <div className="flex items-center justify-between space-x-3 mb-6">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="flex items-center space-x-2">
-                                            <span className="text-xl">
-                                                {problem.platform === 'leetcode' ? <img src="/Leetcode.png" alt="LeetCode" className="w-10 h-6 rounded-full" /> : <img src="/GFG.png" alt="GeeksforGeeks" className="w-10 h-6 rounded-full" />}
-                                            </span>
-                                            <h1 className="text-2xl font-semibold text-gray-900">{problem.title}</h1>
-                                        </div>
-                                    </div>
-                                    <div className='flex items-center space-x-2'>
-                                        <button
-                                            onClick={() => togglePanelMinimized(0)}
-                                            className="p-1 hover:bg-gray-200 rounded transition-colors"
-                                            title="Minimize panel"
-                                        >
-                                            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="mb-6">
-                                    {problem.topicTags && problem.topicTags.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mb-4">
-                                            <span className={`px-2 py-1 text-xs font-medium rounded ${getDifficultyColor(problem.difficulty)}`}>
-                                            {problem.difficulty}
-                                        </span>
-                                            {problem.topicTags.map((tag: any) => (
-                                                <span key={tag.slug} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                                                    {tag.name}
-                                                </span>
-                                            ))}
-                                            <span className={`px-2 py-1 text-xs font-medium rounded ${getStatusColor(userProblem.status)}`}>
-                                            {userProblem.status}
-                                        </span>
-                                        </div>
-                                    )}
-
-                                    {userProblem.date_solved && (
-                                        <div className="flex items-center justify-between">
-                                            <p className="text-gray-600 text-sm mb-2">
-                                                <strong>Solved:</strong> {new Date(userProblem.date_solved).toLocaleDateString()}
-                                            </p>
-                                            <a
-                                                href={problem.problemUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-600 hover:text-blue-700 text-xs font-medium"
-                                                title={`Open in ${problem.platform === 'leetcode' ? 'LeetCode' : 'GeeksforGeeks'}`}
-                                            >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                                </svg>
-                                            </a>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Problem Description */}
-                                <div>
-                                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Description</h2>
-                                    {problem.content ? (
-                                        <div
-                                            className="problem-content prose prose-sm max-w-none 
-                                        prose-headings:text-gray-900 prose-headings:font-semibold
-                                        prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4
-                                        prose-strong:text-gray-900 prose-strong:font-semibold
-                                        prose-em:text-gray-700 prose-em:italic
-                                        prose-code:text-green-700 prose-code:bg-green-50 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm prose-code:font-mono
-                                        prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200 prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto
-                                        prose-pre:text-gray-800 prose-pre:text-sm prose-pre:leading-relaxed prose-pre:whitespace-pre-wrap
-                                        prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-600
-                                        prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-4 prose-ul:text-gray-700
-                                        prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-4 prose-ol:text-gray-700
-                                        prose-li:mb-1 prose-li:leading-relaxed
-                                        prose-table:border-collapse prose-table:w-full prose-table:mb-4
-                                        prose-th:border prose-th:border-gray-300 prose-th:bg-gray-50 prose-th:px-3 prose-th:py-2 prose-th:text-left prose-th:font-semibold prose-th:text-gray-900
-                                        prose-td:border prose-td:border-gray-300 prose-td:px-3 prose-td:py-2 prose-td:text-gray-700 prose-a:text-green-700 prose-a:mr-1"
-                                            dangerouslySetInnerHTML={{ __html: problem.content }}
-                                        />
-                                    ) : (
-                                        <p className="text-gray-500 italic">Problem description not available</p>
-                                    )}
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </div>
-
-                {/* Resize Handle 1 */}
-                {!minimizedPanels[0] && !minimizedPanels[1] && (
-                    <div
-                        className="resize-handle cursor-col-resize transition-colors"
-                        onMouseDown={() => handleResizeStart(0)}
-                    ></div>
-                )}
-
-                {/* Middle Panel - Markdown Editor */}
-                <div
-                    className={`border-gray-200 flex flex-col m-2 border rounded-md resizable-panel overflow-x-hidden transition-all duration-300 ease-in-out ${minimizedPanels[1] ? 'minimized' : ''}`}
-                    style={{ width: `${panelWidths[1]}%` }}
-                >
-                    {minimizedPanels[1] ? (
-                        /* Minimized State */
-                        <div className="h-full flex flex-col bg-gray-50 transition-all duration-300 ease-in-out">
-                            <button
-                                onClick={() => togglePanelMinimized(1)}
-                                className="p-2 hover:bg-gray-200 transition-all duration-200 border-b border-gray-200"
-                                title="Expand Notes & Solution panel"
+                        <h2 className="text-2xl font-bold text-slate-50">Problem data unavailable</h2>
+                        <p className="mt-3 text-sm leading-6 text-slate-400">
+                            This user problem does not include a populated problem record.
+                        </p>
+                        <div className="mt-6 flex items-center justify-center">
+                            <Link
+                                to="/dsa/problems"
+                                className="inline-flex items-center gap-2 rounded-xl bg-amber-300 px-5 py-3 font-semibold text-slate-950 shadow-lg shadow-amber-900/20 transition-all hover:bg-amber-200"
                             >
-                                <svg className="w-4 h-4 text-gray-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                                </svg>
-                            </button>
-                            <div className="flex-1 flex items-center justify-center">
-                                <div className="text-xs text-gray-500 font-medium transform -rotate-90 whitespace-nowrap">
-                                    Notes & Solution
-                                </div>
-                            </div>
+                                <ChevronLeft className="h-4 w-4" />
+                                Back to Problems
+                            </Link>
                         </div>
-                    ) : (
-                        /* Expanded State */
-                        <>
-                            {/* Editor Header */}
-                            <div className="bg-white px-4 py-3 border-b border-gray-200">
-                                <div className="flex items-center justify-between">
-                                    <h2 className="text-sm font-medium text-gray-900">Notes & Solution</h2>
-                                    <div className="flex items-center space-x-2">
-                                        <button
-                                            onClick={() => togglePanelMinimized(1)}
-                                            className="p-1 hover:bg-gray-100 rounded transition-colors"
-                                            title="Minimize panel"
-                                        >
-                                            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        </button>
-                                        <div className="flex items-center space-x-2">
-                                            <span className="text-xs text-gray-600">Status:</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => setEditData(prev => ({
-                                                    ...prev,
-                                                    status: prev.status === 'Todo' ? 'Completed' : 'Todo'
-                                                }))}
-                                                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${editData.status === 'Completed' ? 'bg-green-500' : 'bg-gray-200'
-                                                    }`}
-                                                role="switch"
-                                                aria-checked={editData.status === 'Completed'}
-                                                title={`Toggle to ${editData.status === 'Todo' ? 'Completed' : 'Todo'}`}
-                                            >
-                                                <span
-                                                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${editData.status === 'Completed' ? 'translate-x-5' : 'translate-x-1'
-                                                        }`}
-                                                />
-                                            </button>
-                                            <span className={`text-xs font-medium ${editData.status === 'Completed' ? 'text-green-600' : 'text-orange-600'}`}>
-                                                {editData.status === 'Completed' ? '✅' : '📋'}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <button
-                                                onClick={async () => {
-                                                    // Trigger AI generation using implementationCode
-                                                    if (!implementationCode || implementationCode.trim().length === 0) {
-                                                        alert('Please paste your implementation in the Implementation box before generating the summary.')
-                                                        return
-                                                    }
-                                                    try {
-                                                        setAiLoading(true)
-                                                        const resp = await DSAApiService.generateAiSummary(implementationCode, editData.notes)
-                                                        const summary = resp.summary || ''
-                                                        // Insert AI generated summary at the top of notes so user can edit it
-                                                        setEditData(prev => ({ ...prev, notes: `${summary}\n\n${prev.notes}` }))
-                                                    } catch (err) {
-                                                        const message = err instanceof Error ? err.message : 'Failed to generate AI summary'
-                                                        const responseMessage = (err as any)?.response?.data?.details || (err as any)?.response?.data?.error
-                                                        console.error('AI generate failed', err)
-                                                        alert(responseMessage ? `${message}: ${responseMessage}` : message)
-                                                    } finally {
-                                                        setAiLoading(false)
-                                                    }
-                                                }}
-                                                className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
-                                                title="Generate AI Summary"
-                                            >
-                                                {aiLoading ? 'Generating...' : '✨ Generate Summary'}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Markdown Toolbar */}
-                            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                                <div className="flex flex-wrap gap-2">
-                                    <div className="flex items-center space-x-1">
-                                        <span className="text-xs font-medium text-gray-600 mr-2">Format:</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const textarea = document.querySelector('#notes-textarea') as HTMLTextAreaElement
-                                                if (textarea) {
-                                                    const start = textarea.selectionStart
-                                                    const end = textarea.selectionEnd
-                                                    const text = '**Bold**'
-                                                    const newValue = editData.notes.substring(0, start) + text + editData.notes.substring(end)
-                                                    setEditData(prev => ({ ...prev, notes: newValue }))
-                                                    setTimeout(() => {
-                                                        textarea.focus()
-                                                        textarea.setSelectionRange(start + text.length, start + text.length)
-                                                    }, 0)
-                                                }
-                                            }}
-                                            className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 font-bold"
-                                            title="Bold"
-                                        >
-                                            B
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const textarea = document.querySelector('#notes-textarea') as HTMLTextAreaElement
-                                                if (textarea) {
-                                                    const start = textarea.selectionStart
-                                                    const end = textarea.selectionEnd
-                                                    const text = '*Italic*'
-                                                    const newValue = editData.notes.substring(0, start) + text + editData.notes.substring(end)
-                                                    setEditData(prev => ({ ...prev, notes: newValue }))
-                                                    setTimeout(() => {
-                                                        textarea.focus()
-                                                        textarea.setSelectionRange(start + text.length, start + text.length)
-                                                    }, 0)
-                                                }
-                                            }}
-                                            className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 italic"
-                                            title="Italic"
-                                        >
-                                            I
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const textarea = document.querySelector('#notes-textarea') as HTMLTextAreaElement
-                                                if (textarea) {
-                                                    const start = textarea.selectionStart
-                                                    const end = textarea.selectionEnd
-                                                    const text = '`code`'
-                                                    const newValue = editData.notes.substring(0, start) + text + editData.notes.substring(end)
-                                                    setEditData(prev => ({ ...prev, notes: newValue }))
-                                                    setTimeout(() => {
-                                                        textarea.focus()
-                                                        textarea.setSelectionRange(start + text.length, start + text.length)
-                                                    }, 0)
-                                                }
-                                            }}
-                                            className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 font-mono"
-                                            title="Inline Code"
-                                        >
-                                            {'</>'}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const textarea = document.querySelector('#notes-textarea') as HTMLTextAreaElement
-                                                if (textarea) {
-                                                    const start = textarea.selectionStart
-                                                    const end = textarea.selectionEnd
-                                                    const text = '\n```\ncode block\n```\n'
-                                                    const newValue = editData.notes.substring(0, start) + text + editData.notes.substring(end)
-                                                    setEditData(prev => ({ ...prev, notes: newValue }))
-                                                    setTimeout(() => {
-                                                        textarea.focus()
-                                                        textarea.setSelectionRange(start + text.length, start + text.length)
-                                                    }, 0)
-                                                }
-                                            }}
-                                            className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100"
-                                            title="Code Block"
-                                        >
-                                            {'{}'}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const textarea = document.querySelector('#notes-textarea') as HTMLTextAreaElement
-                                                if (textarea) {
-                                                    const start = textarea.selectionStart
-                                                    const end = textarea.selectionEnd
-                                                    const text = '\n- List item\n'
-                                                    const newValue = editData.notes.substring(0, start) + text + editData.notes.substring(end)
-                                                    setEditData(prev => ({ ...prev, notes: newValue }))
-                                                    setTimeout(() => {
-                                                        textarea.focus()
-                                                        textarea.setSelectionRange(start + text.length, start + text.length)
-                                                    }, 0)
-                                                }
-                                            }}
-                                            className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100"
-                                            title="List"
-                                        >
-                                            •
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const textarea = document.querySelector('#notes-textarea') as HTMLTextAreaElement
-                                                if (textarea) {
-                                                    const start = textarea.selectionStart
-                                                    const end = textarea.selectionEnd
-                                                    const text = '\n## Heading\n'
-                                                    const newValue = editData.notes.substring(0, start) + text + editData.notes.substring(end)
-                                                    setEditData(prev => ({ ...prev, notes: newValue }))
-                                                    setTimeout(() => {
-                                                        textarea.focus()
-                                                        textarea.setSelectionRange(start + text.length, start + text.length)
-                                                    }, 0)
-                                                }
-                                            }}
-                                            className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 font-bold"
-                                            title="Heading"
-                                        >
-                                            H
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Editor Content */}
-                            <div className="flex-1 overflow-y-auto">
-                                <div className="p-4 border-b border-gray-100">
-                                    <label className="text-xs font-medium text-gray-700">Implementation (paste your code here)</label>
-                                    <textarea
-                                        id="implementation-textarea"
-                                        value={implementationCode}
-                                        onChange={(e) => setImplementationCode(e.target.value)}
-                                        placeholder="Paste your implementation code here (e.g., Python/JS function)"
-                                        className="w-full h-40 mt-2 p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none font-mono text-sm leading-relaxed border rounded-md bg-white"
-                                    />
-                                </div>
-                                <textarea
-                                    id="notes-textarea"
-                                    value={editData.notes}
-                                    onChange={(e) => setEditData(prev => ({ ...prev, notes: e.target.value }))}
-                                    placeholder="## Approach
-- Describe your solution strategy
-- Time: O(n), Space: O(1)
-
-## Key Insights
-- Important observations
-- **Edge cases** to consider
-
-```python
-def solution(nums):
-    # Your implementation
-    pass
-```
-
-## Alternative Solutions
-1. Brute force: O(n²)
-2. Optimized: O(n log n)
-
-## Learning Points
-- What did I learn from this problem?
-- Similar problems to practice
-
-## Resources
-- [Problem Link](https://leetcode.com/problems/...)
-- Helpful articles or videos"
-                                    className="w-full h-full p-4 focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none font-mono text-sm leading-relaxed border-0"
-                                />
-                            </div>
-                        </>
-                    )}
-                </div>
-
-                {/* Resize Handle 2 */}
-                {!minimizedPanels[1] && !minimizedPanels[2] && (
-                    <div
-                        className="resize-handle cursor-col-resize hover:bg-blue-300 transition-colors"
-                        onMouseDown={() => handleResizeStart(1)}
-                    ></div>
-                )}
-
-                {/* Right Panel - Preview */}
-                <div
-                    className={`bg-white overflow-y-auto m-2 border rounded-md resizable-panel overflow-x-hidden transition-all duration-300 ease-in-out ${minimizedPanels[2] ? 'minimized' : ''}`}
-                    style={{ width: `${panelWidths[2]}%` }}
-                >
-                    {minimizedPanels[2] ? (
-                        /* Minimized State */
-                        <div className="h-full flex flex-col bg-gray-50 transition-all duration-300 ease-in-out">
-                            <button
-                                onClick={() => togglePanelMinimized(2)}
-                                className="p-2 hover:bg-gray-200 transition-all duration-200 border-b border-gray-200"
-                                title="Expand Preview panel"
-                            >
-                                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </button>
-                            <div className="flex-1 flex items-center justify-center">
-                                <div className="text-xs text-gray-500 font-medium transform -rotate-90 whitespace-nowrap">
-                                    Preview
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        /* Expanded State */
-                        <>
-                            <div className="p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-lg font-semibold text-gray-900">Preview</h2>
-                                    <div className="flex items-center space-x-2">
-                                        <button
-                                            onClick={handleUpdate}
-                                            className={`px-4 py-2 text-sm font-medium rounded-md text-white bg-green-500 hover:bg-green-600'
-                                                }`}
-                                        >
-                                            Save
-                                        </button>
-                                        <button
-                                            onClick={() => togglePanelMinimized(2)}
-                                            className="p-1 hover:bg-gray-100 rounded transition-colors"
-                                            title="Minimize panel"
-                                        >
-                                            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Markdown Preview */}
-                                <div className="mb-8">
-                                    <div
-                                        className="problem-content prose prose-sm max-w-none 
-                                        prose-headings:text-gray-900 prose-headings:font-semibold
-                                        prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4
-                                        prose-strong:text-gray-900 prose-strong:font-semibold
-                                        prose-em:text-gray-700 prose-em:italic
-                                        prose-code:text-green-700 prose-code:bg-green-50 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm prose-code:font-mono
-                                        prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200 prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto
-                                        prose-pre:text-gray-800 prose-pre:text-sm prose-pre:leading-relaxed prose-pre:whitespace-pre-wrap
-                                        prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-600
-                                        prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-4 prose-ul:text-gray-700
-                                        prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-4 prose-ol:text-gray-700
-                                        prose-li:mb-1 prose-li:leading-relaxed
-                                        prose-table:border-collapse prose-table:w-full prose-table:mb-4
-                                        prose-th:border prose-th:border-gray-300 prose-th:bg-gray-50 prose-th:px-3 prose-th:py-2 prose-th:text-left prose-th:font-semibold prose-th:text-gray-900
-                                        prose-td:border prose-td:border-gray-300 prose-td:px-3 prose-td:py-2 prose-td:text-gray-700 prose-a:text-green-700 prose-a:mr-1"
-                                        dangerouslySetInnerHTML={{
-                                            __html: marked(editData.notes)
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                        </>
-                    )}
+                    </div>
                 </div>
             </div>
+        )
+    }
+
+    const topicTags = Array.isArray(problem.topicTags) ? problem.topicTags : []
+    const sourceName = problem.platform === 'leetcode' ? 'LeetCode' : 'GeeksforGeeks'
+
+    return (
+        <div className="relative min-h-screen overflow-x-hidden bg-[#07111f] text-slate-50">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.18),_transparent_35%),radial-gradient(circle_at_80%_20%,_rgba(16,185,129,0.15),_transparent_28%),linear-gradient(135deg,_#07111f_0%,_#0b1727_45%,_#101b2e_100%)]" />
+            <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:48px_48px]" />
+            <style dangerouslySetInnerHTML={{ __html: problemContentStyles }} />
+
+            <main className="relative mx-auto min-h-screen px-4 py-6 sm:px-6 lg:px-10">
+                <section className="rounded-[2rem] border border-white/15 bg-slate-900/55 p-5 sm:p-6 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
+                    <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="max-w-4xl">
+                            <Link
+                                to="/dsa/problems"
+                                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-200 transition-all hover:border-amber-300/40 hover:bg-amber-300/10 hover:text-amber-100"
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                                Back to Problems
+                            </Link>
+
+                            <div className="mt-4 flex flex-wrap items-center gap-3">
+                                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
+                                    {sourceName === 'LeetCode' ? (
+                                        <img src="/Leetcode.png" alt="LeetCode" className="h-3.5 w-3.5 text-amber-300" />
+                                    ) : (
+                                        <img src="/GFG.png" alt="GeeksforGeeks" className="h-3.5 w-3.5 text-amber-300" />
+                                    )}
+                                    {sourceName}
+                                </div>
+                                <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] ${getDifficultyColor(problem.difficulty)}`}>
+                                    <Target className="h-3.5 w-3.5" />
+                                    {problem.difficulty}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setEditData((previous) => ({
+                                        ...previous,
+                                        status: previous.status === 'Todo' ? 'Completed' : 'Todo',
+                                    }))}
+                                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] transition-all ${getStatusColor(editData.status)} hover:scale-[1.01]`}
+                                    title="Toggle status"
+                                >
+                                    <CheckCircle2 className="h-3.5 w-3.5" />
+                                    {editData.status}
+                                </button>
+                                {userProblem.date_solved && (
+                                    <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
+                                        <CalendarDays className="h-3.5 w-3.5 text-amber-300" />
+                                        Solved {new Date(userProblem.date_solved).toLocaleDateString()}
+                                    </div>
+                                )}
+                            </div>
+
+                            <h1 className="mt-5 text-3xl font-black leading-tight text-slate-50 sm:text-4xl lg:text-5xl">
+                                {problem.title}
+                            </h1>
+
+                            <p className="mt-4 text-sm leading-7 text-slate-400 sm:text-base">
+                                Review the original problem statement, keep your implementation close by, and shape your notes into a clean reusable solution summary.
+                            </p>
+
+                            <div className="mt-5 flex flex-wrap gap-2">
+                                {topicTags.length > 0 ? (
+                                    topicTags.map((tag: any) => (
+                                        <span
+                                            key={tag.slug}
+                                            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300"
+                                        >
+                                            <Tag className="h-3.5 w-3.5 text-amber-300" />
+                                            {tag.name}
+                                        </span>
+                                    ))
+                                ) : (
+                                    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-400">
+                                        No topic tags available
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-3 sm:flex-row lg:flex-col lg:items-stretch lg:w-72">
+                            {problem.problemUrl && (
+                                <a
+                                    href={problem.problemUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-200 transition-all hover:border-amber-300/40 hover:bg-amber-300/10 hover:text-amber-100"
+                                    title={`Open in ${sourceName}`}
+                                >
+                                    <ExternalLink className="h-4 w-4" />
+                                    Open source problem
+                                </a>
+                            )}
+
+                            <button
+                                type="button"
+                                onClick={handleUpdate}
+                                disabled={saving}
+                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-300 px-4 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-amber-900/20 transition-all hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <FileText className="h-4 w-4" />
+                                {saving ? 'Saving...' : 'Save Notes'}
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="mt-6 grid gap-6 xl:grid-cols-[1.02fr_1.08fr]">
+                    <article className="rounded-[2rem] border border-white/15 bg-slate-900/55 p-5 sm:p-6 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
+                        <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-4">
+                            <div>
+                                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
+                                    <Code2 className="h-3.5 w-3.5 text-amber-300" />
+                                    Problem Statement
+                                </div>
+                                <h2 className="mt-3 text-xl font-bold text-slate-50">Description and constraints</h2>
+                            </div>
+                        </div>
+
+                        <div className="mt-5 rounded-2xl border border-white/10 bg-slate-950/50 p-4 sm:p-5 h-[820px] overflow-y-auto">
+                            {problem.content ? (
+                                <div
+                                    className="problem-content prose prose-sm max-w-none
+                                        prose-headings:text-slate-100 prose-headings:font-semibold
+                                        prose-p:text-slate-300 prose-p:leading-relaxed prose-p:mb-4
+                                        prose-strong:text-slate-100 prose-strong:font-semibold
+                                        prose-em:text-slate-300 prose-em:italic
+                                        prose-code:text-amber-200 prose-code:bg-slate-950/70 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm prose-code:font-mono
+                                        prose-pre:bg-slate-950/70 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-2xl prose-pre:p-4 prose-pre:overflow-x-auto
+                                        prose-pre:text-slate-200 prose-pre:text-sm prose-pre:leading-relaxed prose-pre:whitespace-pre-wrap
+                                        prose-blockquote:border-l-4 prose-blockquote:border-amber-300 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-slate-300
+                                        prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-4 prose-ul:text-slate-300
+                                        prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-4 prose-ol:text-slate-300
+                                        prose-li:mb-1 prose-li:leading-relaxed
+                                        prose-table:border-collapse prose-table:w-full prose-table:mb-4
+                                        prose-th:border prose-th:border-white/10 prose-th:bg-white/5 prose-th:px-3 prose-th:py-2 prose-th:text-left prose-th:font-semibold prose-th:text-slate-100
+                                        prose-td:border prose-td:border-white/10 prose-td:px-3 prose-td:py-2 prose-td:text-slate-300 prose-a:text-amber-200 prose-a:mr-1"
+                                    dangerouslySetInnerHTML={{ __html: marked(problem.content) }}
+                                />
+                            ) : (
+                                <div className="flex min-h-[420px] items-center justify-center text-slate-400">
+                                    <div className="text-center">
+                                        <FileText className="mx-auto mb-4 h-12 w-12 text-slate-500" />
+                                        <p className="text-sm">Problem description not available.</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </article>
+
+                    <ProblemEditorWorkspace
+                        implementationCode={implementationCode}
+                        onImplementationCodeChange={setImplementationCode}
+                        notes={editData.notes}
+                        onNotesChange={(notes) => setEditData((previous) => ({ ...previous, notes }))}
+                        onGenerateSummary={handleGenerateSummary}
+                        isGenerating={aiLoading}
+                        mode="stacked"
+                        defaultTab="preview"
+                    />
+                </section>
+            </main>
         </div>
     )
 }
