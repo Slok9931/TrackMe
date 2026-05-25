@@ -108,7 +108,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
             {isOpen && (
                 <>
                     <div className={cn('fixed inset-0 z-50', overlayClassName)} onClick={() => setIsOpen(false)} />
-                    <div className={cn('absolute z-50 mt-2 min-w-80 rounded-xl border border-white/15 bg-slate-900 p-4 shadow-[0_24px_60px_rgba(2,6,23,0.55)] backdrop-blur-xl', popoverClassName)}>
+                    <div className={cn('absolute right-0 z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-xl border border-white/15 bg-slate-900 p-4 shadow-[0_24px_60px_rgba(2,6,23,0.55)] backdrop-blur-xl', popoverClassName)}>
                         <div className="mb-4 flex items-center justify-between">
                             <button
                                 type="button"
