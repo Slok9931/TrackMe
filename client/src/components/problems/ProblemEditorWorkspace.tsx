@@ -31,8 +31,18 @@ const workspaceContentStyles = `
 }
 
 .problem-content pre strong {
-    color: #f8fafc !important;
+    display: block !important;
+    color: #fbbf24 !important;
     font-weight: 600 !important;
+    margin: 0.15rem 0 0.05rem !important;
+}
+
+.problem-content pre strong:first-child {
+    margin-top: 0 !important;
+}
+
+.problem-content pre strong + br {
+    display: none !important;
 }
 
 .problem-content pre code {
@@ -48,6 +58,13 @@ const workspaceContentStyles = `
     padding: 0.125rem 0.375rem !important;
     border-radius: 0.375rem !important;
     font-size: 0.875rem !important;
+    font-weight: 400 !important;
+    font-family: inherit !important;
+}
+
+.problem-content code:not(pre code)::before,
+.problem-content code:not(pre code)::after {
+    content: '' !important;
 }
 
 .problem-content blockquote {
@@ -126,7 +143,7 @@ const workspaceContentStyles = `
 .problem-content strong,
 .problem-content b {
     font-weight: 700 !important;
-    color: #f8fafc !important;
+    color: #fbbf24 !important;
 }
 
 .problem-content sup {
@@ -149,6 +166,36 @@ const workspaceContentStyles = `
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
     font-size: 0.875rem !important;
     line-height: 1.6 !important;
+    white-space: pre-wrap !important;
+    display: block !important;
+}
+
+.problem-content div[style*="background"] strong,
+.problem-content div[style*="background"] b {
+    display: block !important;
+    color: #fbbf24 !important;
+    font-weight: 700 !important;
+    margin: 0.35rem 0 0.1rem !important;
+}
+
+.problem-content div[style*="background"] strong:first-child,
+.problem-content div[style*="background"] b:first-child {
+    margin-top: 0 !important;
+}
+
+.problem-content div[style*="background"] p,
+.problem-content div[style*="background"] div,
+.problem-content div[style*="background"] ul,
+.problem-content div[style*="background"] ol,
+.problem-content div[style*="background"] pre,
+.problem-content div[style*="background"] table {
+    margin: 0 !important;
+}
+
+.problem-content div[style*="background"] br {
+    display: block !important;
+    content: '' !important;
+    margin-bottom: 0.35rem !important;
 }
 `
 
