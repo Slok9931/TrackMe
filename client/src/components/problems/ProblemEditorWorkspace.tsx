@@ -337,7 +337,7 @@ const ProblemEditorWorkspace: React.FC<ProblemEditorWorkspaceProps> = ({
                         dangerouslySetInnerHTML={{ __html: previewHtml }}
                     />
                 ) : (
-                    <div className="flex min-h-[360px] items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/5 px-6 py-10 text-center text-slate-400">
+                    <div className="flex min-h-full items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/5 px-6 py-10 text-center text-slate-400">
                         <div className="max-w-sm">
                             <FileText className="mx-auto mb-4 h-12 w-12 text-slate-500" />
                             <h4 className="text-lg font-semibold text-slate-200">{previewEmptyTitle}</h4>
