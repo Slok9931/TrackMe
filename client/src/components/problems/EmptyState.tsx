@@ -14,7 +14,7 @@ export interface EmptyStateProps {
 export const EmptyState: React.FC<EmptyStateProps> = ({
     title,
     description,
-    hasFilters = false,
+    hasFilters: _hasFilters = false,
     showAddButton = false,
     addButtonText = 'Add Your First Problem',
     addButtonLink = '/dsa/add'
