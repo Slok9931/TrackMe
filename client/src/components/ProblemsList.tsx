@@ -3,6 +3,13 @@ import { Link } from 'react-router-dom'
 import DSAApiService from '../services/dsaApi'
 import type { UserProblem, PaginationInfo } from '../services/dsaApi'
 import { DatePicker } from './ui/date-picker'
+import { Dropdown } from './ui/dropdown'
+import { EmptyState } from './problems/EmptyState'
+import { ErrorState } from './problems/ErrorState'
+import { LoadingState } from './problems/LoadingState'
+import { RevisionModal } from './problems/RevisionModal'
+import { DeleteModal } from './problems/DeleteModal'
+import { ProblemsTable } from './problems/ProblemsTable'
 import {
     AlertTriangle,
     BarChart3,
@@ -23,57 +30,7 @@ import {
     X,
 } from 'lucide-react'
 
-// Custom Dropdown Component
-const CustomDropdown: React.FC<{
-    value: string
-    options: { value: string; label: string; icon?: string }[]
-    onChange: (value: string) => void
-    placeholder: string
-}> = ({ value, options, onChange, placeholder }) => {
-    const [isOpen, setIsOpen] = useState(false)
-    const selectedOption = options.find(opt => opt.value === value)
-
-    return (
-        <div className="relative z-50">
-            <button
-                type="button"
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center justify-between rounded-xl border border-white/15 bg-slate-900/75 px-4 py-3 text-sm text-slate-100 shadow-[0_10px_30px_rgba(2,6,23,0.25)] transition-all hover:border-amber-300/40 hover:bg-slate-900/90 focus:border-amber-300/60 focus:ring-2 focus:ring-amber-300/40"
-            >
-                <span className="flex items-center">
-                    {selectedOption?.icon && <span className="mr-2">{selectedOption.icon}</span>}
-                    <span className={selectedOption ? 'text-slate-100' : 'text-slate-400'}>
-                        {selectedOption?.label || placeholder}
-                    </span>
-                </span>
-                <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {isOpen && (
-                <>
-                    <div className="fixed inset-0 z-50" onClick={() => setIsOpen(false)} />
-                    <div className="absolute z-50 mt-2 max-h-60 w-full overflow-auto rounded-xl border border-white/15 bg-slate-900 shadow-[0_24px_60px_rgba(2,6,23,0.55)] backdrop-blur-xl">
-                        {options.map((option) => (
-                            <button
-                                key={option.value}
-                                type="button"
-                                onClick={() => {
-                                    onChange(option.value)
-                                    setIsOpen(false)
-                                }}
-                                className={`flex w-full items-center px-4 py-3 text-left text-sm transition-colors hover:bg-white/5 ${value === option.value ? 'bg-amber-300/10 text-amber-100' : 'text-slate-200'
-                                    }`}
-                            >
-                                {option.icon && <span className="mr-2">{option.icon}</span>}
-                                {option.label}
-                            </button>
-                        ))}
-                    </div>
-                </>
-            )}
-        </div>
-    )
-}
+// using shared Dropdown component from ./ui/dropdown
 
 const ProblemsList: React.FC = () => {
     const [problems, setProblems] = useState<UserProblem[]>([])
@@ -257,22 +214,9 @@ const ProblemsList: React.FC = () => {
         }
     }
 
-    if (loading) {
-    return (
-      <div className="relative min-h-screen overflow-hidden bg-[#07111f] text-slate-50 flex items-center justify-center">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.18),_transparent_35%),radial-gradient(circle_at_80%_20%,_rgba(16,185,129,0.15),_transparent_28%),linear-gradient(135deg,_#07111f_0%,_#0b1727_45%,_#101b2e_100%)]" />
-        <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:48px_48px]" />
-        <div className="relative flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-slate-900/60 px-8 py-7 backdrop-blur-xl shadow-[0_24px_70px_rgba(2,6,23,0.65)]">
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-amber-300 rounded-full animate-pulse"></div>
-            <div className="w-4 h-4 bg-amber-300 rounded-full animate-pulse animation-delay-200"></div>
-            <div className="w-4 h-4 bg-amber-300 rounded-full animate-pulse animation-delay-400"></div>
-          </div>
-          <p className="text-sm tracking-wide text-slate-300">Loading problems...</p>
-        </div>
-      </div>
-    );
-  }
+        if (loading) {
+        return <LoadingState />
+    }
 
     return (
         <div className="relative min-h-screen overflow-hidden bg-[#07111f] text-slate-50">
@@ -349,7 +293,7 @@ const ProblemsList: React.FC = () => {
                         {/* Status Filter */}
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-3">Status</label>
-                            <CustomDropdown
+                            <Dropdown
                                 value={statusFilter}
                                 onChange={(value) => {
                                     setStatusFilter(value as any)
@@ -367,7 +311,7 @@ const ProblemsList: React.FC = () => {
                         {/* Difficulty Filter */}
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-3">Difficulty</label>
-                            <CustomDropdown
+                            <Dropdown
                                 value={difficultyFilter}
                                 onChange={(value) => {
                                     setDifficultyFilter(value as any)
@@ -475,192 +419,24 @@ const ProblemsList: React.FC = () => {
 
                 {/* Problems Table */}
                 {error ? (
-                    <div className="rounded-3xl border border-white/15 bg-slate-900/55 p-8 text-center shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
-                        <div className="text-red-400 mb-4">
-                            <AlertTriangle className="w-16 h-16 mx-auto" />
-                        </div>
-                        <h3 className="text-lg font-semibold text-slate-100 mb-2">Error Loading Problems</h3>
-                        <p className="text-slate-400 mb-6">{error}</p>
-                        <button
-                            onClick={fetchProblems}
-                            className="px-6 py-2.5 bg-amber-300/20 text-amber-200 border border-amber-300/40 rounded-xl hover:bg-amber-300/30 hover:border-amber-300/60 transition-all font-medium text-sm"
-                        >
-                            Try Again
-                        </button>
-                    </div>
+                    <ErrorState message={error} onRetry={fetchProblems} />
                 ) : problems.length === 0 ? (
-                    <div className="rounded-3xl border border-white/15 bg-slate-900/55 p-12 text-center shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
-                        <div className="text-slate-400 mb-6">
-                            <Compass className="w-20 h-20 mx-auto" />
-                        </div>
-                        <h3 className="text-xl font-semibold text-slate-100 mb-2">No problems found</h3>
-                        <p className="text-slate-400 mb-8 max-w-md mx-auto">
-                            {statusFilter !== 'All' || difficultyFilter !== 'All' || platformFilter !== 'All'
-                                ? 'Try adjusting your filters or add some problems to get started.'
-                                : 'Start tracking your DSA journey by adding your first problem.'
-                            }
-                        </p>
-                        <Link
-                            to="/dsa/add"
-                            className="inline-flex items-center px-6 py-3 bg-amber-300/20 text-amber-200 border border-amber-300/40 rounded-xl hover:bg-amber-300/30 hover:border-amber-300/60 transition-all font-medium"
-                        >
-                            <Plus className="w-5 h-5 mr-2" />
-                            Add Your First Problem
-                        </Link>
-                    </div>
+                    <EmptyState
+                        title="No problems found"
+                        description={statusFilter !== 'All' || difficultyFilter !== 'All' || platformFilter !== 'All'
+                            ? 'Try adjusting your filters or add some problems to get started.'
+                            : 'Start tracking your DSA journey by adding your first problem.'
+                        }
+                        hasFilters={statusFilter !== 'All' || difficultyFilter !== 'All' || platformFilter !== 'All'}
+                        showAddButton
+                    />
                 ) : (
-                    <div className="relative z-10 rounded-3xl border border-white/15 bg-slate-900/55 overflow-hidden shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-white/10">
-                                <thead>
-                                    <tr className="bg-slate-800/50 border-b border-white/10">
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                                            Problem
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                                            Difficulty
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                                            Status
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                                            Date Solved
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                                            Revisions
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-white/10">
-                                    {problems.map((userProblem) => {
-                                        const problem = userProblem.problemId as any
-                                        return (
-                                            <tr key={userProblem._id} className="hover:bg-white/5 transition-colors border-b border-white/10">
-                                                <td className="px-6 py-4">
-                                                    <div className="flex flex-col">
-                                                        <div className="text-sm font-semibold text-slate-100 mb-2 flex items-center">
-                                                            <span className="mr-2">
-                                                                {problem.platform === 'gfg' ? <img src="/GFG.png" alt="GeeksforGeeks" className="w-6 h-6 rounded-full" /> : <img src="/Leetcode.png" alt="LeetCode" className="w-6 h-6 rounded-full" />}
-                                                            </span>
-                                                            <Link to={`/dsa/problems/${userProblem._id}`} className="hover:text-amber-300 transition-colors">
-                                                                {problem.title}
-                                                            </Link>
-                                                        </div>
-                                                        {problem.topicTags && problem.topicTags.length > 0 && (
-                                                            <div className="flex flex-wrap gap-1">
-                                                                {problem.topicTags.slice(0, 3).map((tag: any) => (
-                                                                    <span key={tag.slug} className="px-2 py-1 bg-slate-700/50 text-slate-300 text-xs rounded-lg border border-white/10">
-                                                                        {tag.name}
-                                                                    </span>
-                                                                ))}
-                                                                {problem.topicTags.length > 3 && (
-                                                                    <span className="px-2 py-1 bg-slate-700/50 text-slate-300 text-xs rounded-lg border border-white/10">
-                                                                        +{problem.topicTags.length - 3}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg ${
-                                                        problem.difficulty === 'Easy'
-                                                            ? 'bg-emerald-300/15 text-emerald-200 border border-emerald-300/30'
-                                                            : problem.difficulty === 'Medium'
-                                                            ? 'bg-orange-300/15 text-orange-200 border border-orange-300/30'
-                                                            : 'bg-red-300/15 text-red-200 border border-red-300/30'
-                                                    }`}>
-                                                        {problem.difficulty === 'Easy' && '🟢'}
-                                                        {problem.difficulty === 'Medium' && '🟡'}
-                                                        {problem.difficulty === 'Hard' && '🔴'}
-                                                        <span className="ml-1.5">{problem.difficulty}</span>
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center space-x-3">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleStatusUpdate(userProblem._id, userProblem.status === 'Todo' ? 'Completed' : 'Todo')}
-                                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-amber-300/60 focus:ring-offset-2 focus:ring-offset-slate-900 ${
-                                                                userProblem.status === 'Completed'
-                                                                    ? 'bg-emerald-500/30 border border-emerald-300/40'
-                                                                    : 'bg-slate-600/30 border border-white/10'
-                                                            }`}
-                                                            role="switch"
-                                                            aria-checked={userProblem.status === 'Completed'}
-                                                            title={`Toggle to ${userProblem.status === 'Todo' ? 'Completed' : 'Todo'}`}
-                                                        >
-                                                            <span
-                                                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                                                    userProblem.status === 'Completed' ? 'translate-x-6' : 'translate-x-1'
-                                                                }`}
-                                                            />
-                                                        </button>
-                                                        {userProblem.status === 'Completed' ? (
-                                                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                                                        ) : (
-                                                            <Circle className="w-4 h-4 text-slate-500" />
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-sm text-slate-300">
-                                                    {userProblem.date_solved
-                                                        ? new Date(userProblem.date_solved).toLocaleDateString('en-US', {
-                                                            month: 'short',
-                                                            day: 'numeric',
-                                                            year: 'numeric'
-                                                        })
-                                                        : '-'
-                                                    }
-                                                </td>
-                                                <td className="px-6 py-4 text-sm">
-                                                    <button
-                                                        onClick={() => handleRevisionClick(userProblem)}
-                                                        className="flex items-center hover:text-amber-300 transition-colors cursor-pointer text-slate-400"
-                                                        title="View revision history"
-                                                    >
-                                                        <Flame className="w-4 h-4 text-slate-400 mr-2" />
-                                                        <span className="font-semibold">{userProblem.revision_history.length}</span>
-                                                        <ChevronRight className="w-3 h-3 ml-1 text-slate-500" />
-                                                    </button>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center space-x-2">
-                                                        <Link
-                                                            to={`/dsa/problems/${userProblem._id}`}
-                                                            className="p-2 text-slate-400 hover:text-amber-300 hover:bg-white/5 rounded-lg transition-all"
-                                                            title="View Problem Details"
-                                                        >
-                                                            <Eye className="w-4 h-4" />
-                                                        </Link>
-                                                        <a
-                                                            href={problem.problemUrl}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="p-2 text-slate-400 hover:text-blue-400 hover:bg-white/5 rounded-lg transition-all"
-                                                            title="Open on Platform"
-                                                        >
-                                                            <ExternalLink className="w-4 h-4" />
-                                                        </a>
-                                                        <button
-                                                            onClick={() => handleDeleteClick(userProblem)}
-                                                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-white/5 rounded-lg transition-all"
-                                                            title="Delete Problem"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    <ProblemsTable
+                        problems={problems}
+                        onStatusUpdate={handleStatusUpdate}
+                        onRevisionClick={handleRevisionClick}
+                        onDeleteClick={handleDeleteClick}
+                    />
                 )}
 
                 {/* Pagination */}
@@ -743,196 +519,24 @@ const ProblemsList: React.FC = () => {
                     </div>
                 )}
                 {/* Revision Modal */}
-                {revisionModalOpen && selectedProblem && (
-                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                        <div className="rounded-3xl border border-white/15 bg-slate-900/95 shadow-[0_40px_80px_rgba(2,6,23,0.75)] max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-                            {/* Modal Header */}
-                            <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
-                                <div>
-                                    <h2 className="text-2xl font-bold text-slate-50 flex items-center gap-2">
-                                        <Flame className="w-6 h-6 text-amber-300" />
-                                        Revision History
-                                    </h2>
-                                    <p className="text-sm text-slate-400 mt-1">
-                                        {(selectedProblem.problemId as any).title}
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={() => {
-                                        setRevisionModalOpen(false)
-                                        setSelectedProblem(null)
-                                        setNewRevisionNote('')
-                                    }}
-                                    className="text-slate-400 hover:text-slate-200 transition-colors p-2 hover:bg-white/5 rounded-lg"
-                                >
-                                    <X className="w-6 h-6" />
-                                </button>
-                            </div>
-
-                            {/* Modal Content */}
-                            <div className="flex-1 overflow-y-auto h-[40vh] px-6 py-6">
-                                {selectedProblem.revision_history.length === 0 ? (
-                                    <div className="py-16 text-center">
-                                        <div className="text-slate-500 mb-4">
-                                            <BookOpen className="w-16 h-16 mx-auto" />
-                                        </div>
-                                        <h3 className="text-lg font-semibold text-slate-200 mb-2">No revisions yet</h3>
-                                        <p className="text-slate-400">Start tracking your revision notes for this problem.</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        {selectedProblem.revision_history
-                                            .sort((a, b) => b.revision_no - a.revision_no)
-                                            .map((revision) => (
-                                                <div key={revision.revision_no} className="bg-slate-800/50 rounded-xl p-4 border border-white/10 hover:border-white/20 transition-colors">
-                                                    <div className="flex items-center justify-between mb-3">
-                                                        <span className="text-sm font-semibold text-amber-300 flex items-center gap-2">
-                                                            <Flame className="w-4 h-4" />
-                                                            Revision #{revision.revision_no}
-                                                        </span>
-                                                        <span className="text-xs text-slate-400">
-                                                            {new Date(revision.revision_date).toLocaleDateString('en-US', {
-                                                                month: 'short',
-                                                                day: 'numeric',
-                                                                year: 'numeric',
-                                                                hour: '2-digit',
-                                                                minute: '2-digit'
-                                                            })}
-                                                        </span>
-                                                    </div>
-                                                    <div className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">
-                                                        {revision.revision_notes}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Add New Revision Section */}
-                            <div className="px-6 py-5 border-t border-white/10 bg-slate-800/30">
-                                <h3 className="text-sm font-semibold text-slate-100 mb-3 flex items-center gap-2">
-                                    <Plus className="w-4 h-4 text-amber-300" />
-                                    Add New Revision
-                                </h3>
-                                <div className="space-y-3">
-                                    <textarea
-                                        value={newRevisionNote}
-                                        onChange={(e) => setNewRevisionNote(e.target.value)}
-                                        placeholder="What did you learn or improve in this revision?&#10;&#10;Example:&#10;- Optimized the approach from O(n²) to O(n)&#10;- Better understood the two-pointer technique&#10;- Fixed edge case with empty arrays"
-                                        rows={6}
-                                        className="w-full px-4 py-3 border border-white/15 rounded-xl bg-slate-800/50 text-slate-100 placeholder-slate-500 focus:border-amber-300/60 focus:ring-2 focus:ring-amber-300/40 focus:outline-none resize-none text-sm transition-all"
-                                    />
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-xs text-slate-400">
-                                            Track your learning progress and improvements
-                                        </span>
-                                        <div className="flex space-x-2">
-                                            <button
-                                                onClick={() => {
-                                                    setRevisionModalOpen(false)
-                                                    setSelectedProblem(null)
-                                                    setNewRevisionNote('')
-                                                }}
-                                                className="px-4 py-2 text-sm text-slate-300 hover:text-slate-100 hover:bg-white/5 rounded-lg transition-colors"
-                                            >
-                                                Cancel
-                                            </button>
-                                            <button
-                                                onClick={handleAddRevision}
-                                                disabled={!newRevisionNote.trim() || addingRevision}
-                                                className="px-4 py-2 text-sm bg-amber-300/20 text-amber-200 border border-amber-300/40 rounded-lg hover:bg-amber-300/30 hover:border-amber-300/60 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center font-medium"
-                                            >
-                                                {addingRevision ? (
-                                                    <>
-                                                        <div className="w-4 h-4 mr-2 border-2 border-amber-300/40 border-t-amber-300 rounded-full animate-spin" />
-                                                        Adding...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Plus className="w-4 h-4 mr-2" />
-                                                        Add
-                                                    </>
-                                                )}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                <RevisionModal
+                    isOpen={revisionModalOpen}
+                    problem={selectedProblem}
+                    newRevisionNote={newRevisionNote}
+                    onNoteChange={setNewRevisionNote}
+                    onAddRevision={handleAddRevision}
+                    onClose={() => { setRevisionModalOpen(false); setSelectedProblem(null); setNewRevisionNote('') }}
+                    isLoading={addingRevision}
+                />
 
                 {/* Delete Confirmation Modal */}
-                {deleteModalOpen && problemToDelete && (
-                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                        <div className="rounded-3xl border border-white/15 bg-slate-900/95 shadow-[0_40px_80px_rgba(2,6,23,0.75)] max-w-md w-full overflow-hidden">
-                            {/* Modal Header */}
-                            <div className="px-6 py-5 border-b border-white/10">
-                                <div className="flex items-center">
-                                    <div className="flex items-center justify-center w-12 h-12 bg-red-500/20 rounded-full mr-4 border border-red-500/30">
-                                        <AlertTriangle className="w-6 h-6 text-red-400" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-slate-50">Delete Problem</h3>
-                                        <p className="text-sm text-slate-400 mt-1">This action cannot be undone</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Modal Content */}
-                            <div className="px-6 py-5">
-                                <p className="text-slate-300 mb-4">
-                                    Are you sure you want to remove <span className="font-semibold text-slate-100">"{(problemToDelete.problemId as any).title}"</span> from your tracking list?
-                                </p>
-                                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
-                                    <div className="flex items-start">
-                                        <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" />
-                                        <div className="text-sm text-red-300">
-                                            <p className="font-semibold mb-2">This will permanently delete:</p>
-                                            <ul className="space-y-1 text-red-200/90">
-                                                <li>• Your progress tracking for this problem</li>
-                                                <li>• All revision notes ({problemToDelete.revision_history.length} revisions)</li>
-                                                <li>• Your solution notes and completion status</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Modal Actions */}
-                            <div className="px-6 py-4 border-t border-white/10 bg-slate-800/30 flex items-center justify-end space-x-3">
-                                <button
-                                    onClick={() => {
-                                        setDeleteModalOpen(false)
-                                        setProblemToDelete(null)
-                                    }}
-                                    disabled={deleting}
-                                    className="px-4 py-2 text-sm text-slate-300 hover:text-slate-100 hover:bg-white/5 rounded-lg transition-colors disabled:opacity-50"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleDeleteConfirm}
-                                    disabled={deleting}
-                                    className="px-4 py-2 text-sm bg-red-500/20 text-red-200 border border-red-500/30 rounded-lg hover:bg-red-500/30 hover:border-red-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center font-medium"
-                                >
-                                    {deleting ? (
-                                        <>
-                                            <div className="w-4 h-4 mr-2 border-2 border-red-400/40 border-t-red-400 rounded-full animate-spin" />
-                                            Deleting...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Trash2 className="w-4 h-4 mr-2" />
-                                            Delete Problem
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                <DeleteModal
+                    isOpen={deleteModalOpen}
+                    problem={problemToDelete}
+                    onConfirm={handleDeleteConfirm}
+                    onClose={() => { setDeleteModalOpen(false); setProblemToDelete(null) }}
+                    isLoading={deleting}
+                />
             </main>
         </div>
     )
