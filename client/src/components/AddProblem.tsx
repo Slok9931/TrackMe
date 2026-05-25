@@ -1,245 +1,23 @@
 import React, { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { marked } from 'marked'
+import {
+    Bold,
+    CalendarDays,
+    CheckCircle2,
+    ClipboardList,
+    Code2,
+    Heading2,
+    Italic,
+    List,
+    Wand2,
+} from 'lucide-react'
 import DSAApiService from '../services/dsaApi'
-
-// Custom Date Picker Component
-interface CustomDatePickerProps {
-    value: string
-    onChange: (value: string) => void
-    placeholder?: string
-    required?: boolean
-    disabled?: boolean
-    className?: string
-}
-
-const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
-    value,
-    onChange,
-    placeholder = "Select date",
-    disabled,
-    className = ""
-}) => {
-    const [isOpen, setIsOpen] = useState(false)
-    const [currentMonth, setCurrentMonth] = useState(() => {
-        if (value) {
-            return new Date(value)
-        }
-        return new Date()
-    })
-
-    const formatDate = (dateStr: string) => {
-        if (!dateStr) return ''
-        const date = new Date(dateStr)
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        })
-    }
-
-    const generateCalendar = () => {
-        const year = currentMonth.getFullYear()
-        const month = currentMonth.getMonth()
-        const firstDay = new Date(year, month, 1)
-        const startDate = new Date(firstDay)
-        startDate.setDate(startDate.getDate() - firstDay.getDay())
-
-        const days = []
-        const today = new Date()
-        const selectedDate = value ? new Date(value) : null
-
-        for (let i = 0; i < 42; i++) {
-            const date = new Date(startDate)
-            date.setDate(startDate.getDate() + i)
-
-            const isCurrentMonth = date.getMonth() === month
-            const isToday = date.toDateString() === today.toDateString()
-            const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
-
-            days.push({
-                date: new Date(date),
-                day: date.getDate(),
-                isCurrentMonth,
-                isToday,
-                isSelected
-            })
-        }
-
-        return days
-    }
-
-    const handleDateSelect = (date: Date) => {
-        // Format date as YYYY-MM-DD in local timezone to avoid timezone offset issues
-        const year = date.getFullYear()
-        const month = String(date.getMonth() + 1).padStart(2, '0')
-        const day = String(date.getDate()).padStart(2, '0')
-        const isoString = `${year}-${month}-${day}`
-        onChange(isoString)
-        setIsOpen(false)
-    }
-
-    const navigateMonth = (direction: number) => {
-        setCurrentMonth(prev => {
-            const newDate = new Date(prev)
-            newDate.setMonth(prev.getMonth() + direction)
-            return newDate
-        })
-    }
-
-    const monthNames = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-    ]
-
-    if (disabled) {
-        return (
-            <div className={`w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-400 ${className}`}>
-                {value ? formatDate(value) : placeholder}
-            </div>
-        )
-    }
-
-    return (
-        <div className="relative">
-            <button
-                type="button"
-                onClick={() => setIsOpen(!isOpen)}
-                className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-green-500 focus:border-green-500 text-left flex items-center justify-between bg-white ${className}`}
-            >
-                <span className={value ? 'text-gray-900' : 'text-gray-400'}>
-                    {value ? formatDate(value) : placeholder}
-                </span>
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-            </button>
-
-            {isOpen && (
-                <div
-                    className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
-                    style={{ zIndex: 9999 }}
-                >
-                    {/* Header */}
-                    <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                        <button
-                            type="button"
-                            onClick={() => navigateMonth(-1)}
-                            className="p-1 hover:bg-gray-100 rounded-full"
-                        >
-                            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </button>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                            {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
-                        </h3>
-                        <button
-                            type="button"
-                            onClick={() => navigateMonth(1)}
-                            className="p-1 hover:bg-gray-100 rounded-full"
-                        >
-                            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    {/* Calendar Grid */}
-                    <div className="p-4">
-                        {/* Day Labels */}
-                        <div className="grid grid-cols-7 gap-1 mb-2">
-                            {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
-                                <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
-                                    {day}
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Calendar Days */}
-                        <div className="grid grid-cols-7 gap-1">
-                            {generateCalendar().map((dayInfo, index) => (
-                                <button
-                                    key={index}
-                                    type="button"
-                                    onClick={() => handleDateSelect(dayInfo.date)}
-                                    className={`
-                                        p-2 text-sm rounded-lg relative
-                                        ${dayInfo.isCurrentMonth ? 'text-gray-900' : 'text-gray-400'}
-                                        ${dayInfo.isSelected ? 'bg-green-500 text-white' : 'hover:bg-gray-100'}
-                                        ${dayInfo.isToday && !dayInfo.isSelected ? 'bg-green-50 text-green-600 font-semibold' : ''}
-                                    `}
-                                >
-                                    {dayInfo.day}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Footer */}
-                    <div className="flex items-center justify-between p-4 border-t border-gray-200">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                onChange('')
-                                setIsOpen(false)
-                            }}
-                            className="text-sm text-gray-500 hover:text-gray-700"
-                        >
-                            Clear
-                        </button>
-                        <div className="flex space-x-2">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const today = new Date()
-                                    handleDateSelect(today)
-                                }}
-                                className="px-3 py-1 text-sm text-green-600 hover:text-green-700"
-                            >
-                                Today
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setIsOpen(false)}
-                                className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Click outside to close */}
-            {isOpen && (
-                <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setIsOpen(false)}
-                />
-            )}
-        </div>
-    )
-}
+import { DatePicker } from './ui/date-picker'
 
 const AddProblem: React.FC = () => {
     // Basic template for notes
-    const notesTemplate = `
-## 💡 Approach
-- **Initial thoughts:**
-- **Algorithm/Strategy:**
-- **Time Complexity:** O()
-- **Space Complexity:** O()
-
-## 📝 Implementation
-\`\`\`cpp
-
-\`\`\`
-
-## 🔍 Key Insights
-- **What did you learn?**
-- **Edge cases to consider:**
-- **Common mistakes to avoid:**`
+    const notesTemplate = ``
 
     const [formData, setFormData] = useState({
         titleSlug: '',
@@ -301,23 +79,20 @@ const AddProblem: React.FC = () => {
     }
 
     const insertText = (text: string) => {
-        if (textareaRef.current) {
-            const textarea = textareaRef.current
-            const start = textarea.selectionStart
-            const end = textarea.selectionEnd
-            const currentValue = formData.notes
-            const newValue = currentValue.substring(0, start) + text + currentValue.substring(end)
+        if (!textareaRef.current) return
 
-            setFormData(prev => ({ ...prev, notes: newValue }))
+        const textarea = textareaRef.current
+        const start = textarea.selectionStart
+        const end = textarea.selectionEnd
+        const currentValue = formData.notes
+        const nextValue = currentValue.slice(0, start) + text + currentValue.slice(end)
 
-            // Set cursor position after the inserted text
-            setTimeout(() => {
-                if (textarea) {
-                    textarea.focus()
-                    textarea.setSelectionRange(start + text.length, start + text.length)
-                }
-            }, 0)
-        }
+        setFormData(prev => ({ ...prev, notes: nextValue }))
+
+        window.setTimeout(() => {
+            textarea.focus()
+            textarea.setSelectionRange(start + text.length, start + text.length)
+        }, 0)
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -380,299 +155,316 @@ const AddProblem: React.FC = () => {
     }
 
     return (
-        <div className="bg-gray-50">
+        <div className="relative min-h-screen overflow-x-hidden bg-[#07111f] text-slate-50">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.18),_transparent_35%),radial-gradient(circle_at_80%_20%,_rgba(16,185,129,0.15),_transparent_28%),linear-gradient(135deg,_#07111f_0%,_#0b1727_45%,_#101b2e_100%)]" />
+            <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:48px_48px]" />
 
-            {/* Main Content */}
-            <main className="mx-auto py-8 px-4 sm:px-6 lg:px-8">
-                {/* Top Section - Form Fields */}
-                <div className="bg-white rounded-xl border border-gray-200 p-8 mb-8">
-                    <div className="mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Add New Problem</h2>
-                        <p className="text-gray-600">
-                            Add a problem to your tracking list using the problem URL.
-                        </p>
-                    </div>
+            <main className="relative mx-auto min-h-screen px-4 py-6 sm:px-8 lg:px-10">
+                <form onSubmit={handleSubmit} className="space-y-8">
+                    <section className="relative z-20 grid grid-cols-1 xl:grid-cols-[1.05fr_0.95fr] gap-6 items-center">
+                        <div className="relative order-2 xl:order-1">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-semibold text-amber-100 mb-4">
+                                <span className="h-2 w-2 rounded-full bg-amber-300" />
+                                Add Problem Workspace
+                            </div>
+                            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight mb-2">
+                                Add New Problem
+                            </h1>
+                            <p className="text-base sm:text-lg text-slate-200/90 mb-5">
+                                Add a problem from LeetCode or GeeksforGeeks, capture its status, and keep your notes and implementation together.
+                            </p>
 
-                    {success && (
-                        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                            <div className="flex items-center">
-                                <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <p className="text-green-700 font-medium">
-                                    Problem added successfully! Redirecting to problems list...
-                                </p>
+                            {success && (
+                                <div className="mb-4 rounded-2xl border border-emerald-300/20 bg-emerald-300/10 p-4">
+                                    <div className="flex items-center">
+                                        <svg className="mr-3 h-5 w-5 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <p className="font-medium text-emerald-50">
+                                            Problem added successfully! Redirecting to problems list...
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {error && (
+                                <div className="mb-4 rounded-2xl border border-red-300/20 bg-red-300/10 p-4">
+                                    <div className="flex items-center">
+                                        <svg className="mr-3 h-5 w-5 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                        </svg>
+                                        <p className="text-red-100">{error}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="rounded-[2rem] border border-white/15 bg-slate-900/55 p-5 sm:p-6 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
+                                <div className="flex flex-col gap-2">
+                                    <div className="md:col-span-2">
+                                        <label htmlFor="titleSlug" className="block text-sm font-medium text-slate-300 mb-2">
+                                            Problem URL <span className="text-amber-300">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="titleSlug"
+                                            name="titleSlug"
+                                            value={formData.titleSlug}
+                                            onChange={handleInputChange}
+                                            placeholder={
+                                                formData.platform === 'leetcode'
+                                                    ? 'e.g., https://leetcode.com/problems/set-matrix-zeroes/'
+                                                    : 'e.g., count-subarray-with-given-xor or https://www.geeksforgeeks.org/problems/count-subarray-with-given-xor/1'
+                                            }
+                                            className="w-full rounded-xl border border-white/15 bg-slate-900/75 px-4 py-3 text-slate-100 placeholder:text-slate-500 shadow-[0_10px_30px_rgba(2,6,23,0.25)] transition-all hover:border-amber-300/40 hover:bg-slate-900/90 focus:border-amber-300/60 focus:outline-none focus:ring-2 focus:ring-amber-300/40"
+                                            required
+                                        />
+                                        <p className="mt-2 text-sm text-slate-400">
+                                            You can paste the full URL from LeetCode or GeeksforGeeks.
+                                        </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                        <label className="block text-sm font-medium text-slate-300 text-center md:text-left">
+                                            Status <span className="text-amber-300">*</span>
+                                        </label>
+                                        <div className="flex h-full items-center justify-start gap-4 shadow-[0_10px_30px_rgba(2,6,23,0.25)]">
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData((prev) => ({
+                                                    ...prev,
+                                                    status: prev.status === 'Todo' ? 'Completed' : 'Todo',
+                                                    date_solved: prev.status === 'Todo' ? prev.date_solved : ''
+                                                }))}
+                                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-amber-300/40 ${formData.status === 'Completed' ? 'bg-emerald-500' : 'bg-slate-700'}`}
+                                                role="switch"
+                                                aria-checked={formData.status === 'Completed'}
+                                            >
+                                                <span
+                                                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.status === 'Completed' ? 'translate-x-6' : 'translate-x-1'}`}
+                                                />
+                                            </button>
+                                            {formData.status === 'Completed' ? (
+                                                <span className="inline-flex items-center gap-2 text-sm font-medium text-emerald-300">
+                                                    <CheckCircle2 className="h-4 w-4" />
+                                                    Completed
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-2 text-sm font-medium text-amber-200">
+                                                    <ClipboardList className="h-4 w-4" />
+                                                    Todo
+                                                </span>
+                                            )}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-300">
+                                                    <CalendarDays className="h-4 w-4 text-amber-300" />
+                                                    Date Solved {formData.status === 'Completed' && <span className="text-amber-300">*</span>}
+                                                </label>
+                                                <DatePicker
+                                                    value={formData.date_solved}
+                                                    onChange={(value) => setFormData((prev) => ({ ...prev, date_solved: value }))}
+                                                    placeholder="Select date solved"
+                                                    wrapperClassName="w-full"
+                                                />
+                                                <p className="mt-2 text-sm text-slate-400">
+                                                    {formData.status === 'Completed' ? 'When you solved it' : 'Available when completed'}
+                                                </p>
+                                            </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    )}
 
-                    {error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                            <div className="flex items-center">
-                                <svg className="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                </svg>
-                                <p className="text-red-700">{error}</p>
-                            </div>
-                        </div>
-                    )}
-
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                            {/* Problem URL */}
-                            <div className='col-span-2'>
-                                <label htmlFor="titleSlug" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Problem URL <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    id="titleSlug"
-                                    name="titleSlug"
-                                    value={formData.titleSlug}
-                                    onChange={handleInputChange}
-                                    placeholder={
-                                        formData.platform === 'leetcode'
-                                            ? "e.g., https://leetcode.com/problems/set-matrix-zeroes/"
-                                            : "e.g., count-subarray-with-given-xor or https://www.geeksforgeeks.org/problems/count-subarray-with-given-xor/1"
-                                    }
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-2 focus:border-green-500 focus:outline-none"
-                                    required
+                        <div className="order-1 xl:order-2">
+                            <div className="relative overflow-hidden">
+                                <img
+                                    src="/4.png"
+                                    alt="Add problem illustration"
+                                    className="w-full max-h-[560px] object-contain"
                                 />
-                                <p className="mt-1 text-sm text-gray-500">
-                                    You can paste the full URL from LeetCode or GeeksforGeeks
-                                </p>
                             </div>
+                        </div>
+                    </section>
 
-                            {/* Status Toggle Switch */}
-                            <div className='mx-auto'>
-                                <label className="block text-sm font-medium text-gray-700 text-center mb-3">
-                                    Status <span className="text-red-500">*</span>
-                                </label>
-                                <div className="flex items-center flex-col gap-1">
+                    <section className="grid grid-cols-1 xl:grid-cols-[1.05fr_0.95fr] gap-6 items-start">
+                        <div className="relative z-10 overflow-hidden rounded-3xl border border-white/15 bg-slate-900/55 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
+                            <div className="flex flex-col gap-3 border-b border-white/10 p-5">
+
+                                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-slate-950/50 p-1 w-fit">
                                     <button
                                         type="button"
-                                        onClick={() => setFormData(prev => ({
-                                            ...prev,
-                                            status: prev.status === 'Todo' ? 'Completed' : 'Todo',
-                                            // Clear date_solved when switching to Todo
-                                            date_solved: prev.status === 'Todo' ? prev.date_solved : ''
-                                        }))}
-                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${formData.status === 'Completed' ? 'bg-green-500' : 'bg-gray-200'
-                                            }`}
-                                        role="switch"
-                                        aria-checked={formData.status === 'Completed'}
+                                        onClick={() => setLeftTab('code')}
+                                        className={`rounded-xl px-4 py-2 text-sm font-semibold transition-all ${leftTab === 'code' ? 'bg-amber-300 text-slate-950 shadow-lg shadow-amber-900/20' : 'text-slate-300 hover:bg-white/5 hover:text-white'}`}
                                     >
-                                        <span
-                                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.status === 'Completed' ? 'translate-x-6' : 'translate-x-1'
-                                                }`}
-                                        />
+                                        Implementation
                                     </button>
-                                    {formData.status === 'Completed' ? <span className={`text-sm font-medium ${formData.status === 'Completed' ? 'text-green-600' : 'text-gray-500'}`}>
-                                        ✅ Completed
-                                    </span> : <span className={`text-sm font-medium ${formData.status === 'Todo' ? 'text-orange-600' : 'text-gray-500'}`}>
-                                        📋 Todo
-                                    </span>}
+                                    <button
+                                        type="button"
+                                        onClick={() => setLeftTab('notes')}
+                                        className={`rounded-xl px-4 py-2 text-sm font-semibold transition-all ${leftTab === 'notes' ? 'bg-amber-300 text-slate-950 shadow-lg shadow-amber-900/20' : 'text-slate-300 hover:bg-white/5 hover:text-white'}`}
+                                    >
+                                        Notes
+                                    </button>
                                 </div>
                             </div>
 
-                            {/* Date Solved */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Date Solved {formData.status === 'Completed' && <span className="text-red-500">*</span>}
-                                </label>
-                                <CustomDatePicker
-                                    value={formData.date_solved}
-                                    onChange={(value) => setFormData(prev => ({ ...prev, date_solved: value }))}
-                                    placeholder="Select date solved"
-                                    required={formData.status === 'Completed'}
-                                    disabled={formData.status === 'Todo'}
-                                />
-                                <p className="mt-1 text-sm text-gray-500">
-                                    {formData.status === 'Completed'
-                                        ? 'When you solved it'
-                                        : 'Available when completed'
-                                    }
+                            <div className="p-5">
+                                {leftTab === 'code' ? (
+                                    <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4 shadow-inner">
+                                        <textarea
+                                            placeholder="Paste full implementation code here (preserves indentation)..."
+                                            value={implementationCode}
+                                            onChange={(e) => setImplementationCode(e.target.value)}
+                                            rows={12}
+                                            className="w-full min-h-[280px] resize-y rounded-xl border border-white/10 bg-slate-950/60 px-4 py-4 font-mono text-sm leading-6 text-slate-100 outline-none transition focus:border-amber-300/40 focus:ring-2 focus:ring-amber-300/20"
+                                        />
+
+                                        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                            <p className="text-xs leading-5 text-slate-400">
+                                                Paste clean, runnable code here. The AI summary uses this block to generate your notes.
+                                            </p>
+
+                                            <button
+                                                type="button"
+                                                onClick={async () => {
+                                                    if (!implementationCode.trim()) {
+                                                        setError('Please paste implementation code first')
+                                                        return
+                                                    }
+                                                    setAiLoading(true)
+                                                    setError(null)
+                                                    try {
+                                                        const result = await DSAApiService.generateAiSummary(implementationCode, formData.notes)
+                                                        setFormData((prev) => ({
+                                                            ...prev,
+                                                            notes: result.summary,
+                                                        }))
+                                                        setLeftTab('notes')
+                                                    } catch (err: any) {
+                                                        const errorMsg = err.response?.data?.details || err.message || 'Failed to generate summary'
+                                                        setError(`AI Summary Error: ${errorMsg}`)
+                                                    } finally {
+                                                        setAiLoading(false)
+                                                    }
+                                                }}
+                                                disabled={aiLoading || !implementationCode.trim()}
+                                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-300 px-4 py-2 text-sm font-semibold text-slate-950 shadow-lg shadow-amber-900/20 transition-all hover:bg-amber-200 hover:shadow-amber-900/30 disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-[160px]"
+                                            >
+                                                <Wand2 className="h-4 w-4" />
+                                                {aiLoading ? 'Generating...' : 'Generate Summary'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4 shadow-inner">
+                                        <div className="mb-3 flex flex-wrap items-center gap-2">
+                                            <button type="button" onClick={() => insertText('**Bold**')} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10 hover:text-white" title="Bold">
+                                                <Bold className="h-3.5 w-3.5" />
+                                                Bold
+                                            </button>
+                                            <button type="button" onClick={() => insertText('*Italic*')} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10 hover:text-white" title="Italic">
+                                                <Italic className="h-3.5 w-3.5" />
+                                                Italic
+                                            </button>
+                                            <button type="button" onClick={() => insertText('`code`')} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10 hover:text-white" title="Inline Code">
+                                                <Code2 className="h-3.5 w-3.5" />
+                                                Code
+                                            </button>
+                                            <button type="button" onClick={() => insertText('\n- List item\n')} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10 hover:text-white" title="List">
+                                                <List className="h-3.5 w-3.5" />
+                                                List
+                                            </button>
+                                            <button type="button" onClick={() => insertText('\n## Heading\n')} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10 hover:text-white" title="Heading">
+                                                <Heading2 className="h-3.5 w-3.5" />
+                                                Heading
+                                            </button>
+                                        </div>
+                                        <textarea
+                                            ref={textareaRef}
+                                            name="notes"
+                                            value={formData.notes}
+                                            onChange={handleInputChange}
+                                            rows={14}
+                                            className="notes-editor w-full resize-none rounded-xl border border-white/10 bg-slate-950/60 px-4 py-4 font-mono text-sm leading-relaxed text-slate-100 outline-none focus:border-amber-300/40 focus:ring-2 focus:ring-amber-300/20"
+                                            placeholder={notesTemplate}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="overflow-hidden rounded-3xl border border-white/15 bg-slate-900/55 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
+                            <div className="border-b border-white/10 p-5">
+                                <h3 className="text-lg font-semibold text-slate-100 mb-1">Live Preview</h3>
+                                <p className="text-sm text-slate-400">
+                                    See how your markdown will be rendered.
                                 </p>
                             </div>
 
-                        </div>
-
-                        {/* Bottom Section - Markdown Editor and Preview */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {/* Left Column - Markdown Editor */}
-                            <div className="bg-white rounded-xl border border-gray-200">
-                                <div className="p-6 border-b border-gray-200">
-                                    {leftTab === 'notes' ? (
-                                        <>
-                                            <h3 className="text-lg font-semibold text-gray-900 mb-1">✍️ Write Notes</h3>
-                                            <p className="text-sm text-gray-600">Document your approach, insights, and learning points in Markdown</p>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <h3 className="text-lg font-semibold text-gray-900 mb-1">🧾 Implementation</h3>
-                                            <p className="text-sm text-gray-600">Paste your full implementation code here to generate notes.</p>
-                                        </>
-                                    )}
-                                </div>
-
-                                <div className="space-y-0">
-                                    <div className="flex items-start justify-between p-4 bg-gray-50 border-b border-gray-200">
-                                        {/* Formatting toolbar only shown when on Notes tab */}
-                                        <div className="flex items-center space-x-1">
-                                            {leftTab === 'notes' && (
-                                                <>
-                                                    <span className="text-xs font-medium text-gray-600 mr-2">Format:</span>
-                                                    <button type="button" onClick={() => insertText('**Bold**')} className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 font-bold" title="Bold">B</button>
-                                                    <button type="button" onClick={() => insertText('*Italic*')} className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 italic" title="Italic">I</button>
-                                                    <button type="button" onClick={() => insertText('`code`')} className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 font-mono" title="Inline Code">{'</>'}</button>
-                                                    <button type="button" onClick={() => insertText('\n```\ncode block\n```\n')} className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100" title="Code Block">{'{}'}</button>
-                                                    <button type="button" onClick={() => insertText('\n- List item\n')} className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100" title="List">•</button>
-                                                    <button type="button" onClick={() => insertText('\n## Heading\n')} className="px-3 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 font-bold" title="Heading">H</button>
-                                                </>
-                                            )}
-                                        </div>
-
-                                        {/* Tab switcher always visible */}
-                                        <div className="flex items-center space-x-2">
-                                            <button type="button" onClick={() => setLeftTab('code')} className={`px-3 py-2 -mb-px border-b-2 ${leftTab === 'code' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-600 hover:text-gray-800'}`}>Implementation</button>
-                                            <button type="button" onClick={() => setLeftTab('notes')} className={`px-3 py-2 -mb-px border-b-2 ${leftTab === 'notes' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-600 hover:text-gray-800'}`}>Notes</button>
+                            <div className="h-[460px] overflow-y-auto p-5">
+                                {formData.notes.trim() ? (
+                                    <div
+                                        className="problem-content prose prose-sm max-w-none
+                                            prose-headings:text-slate-100 prose-headings:font-semibold
+                                            prose-p:text-slate-300 prose-p:leading-relaxed prose-p:mb-4
+                                            prose-strong:text-slate-100 prose-strong:font-semibold
+                                            prose-em:text-slate-300 prose-em:italic
+                                            prose-code:text-amber-200 prose-code:bg-slate-950/70 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm prose-code:font-mono
+                                            prose-pre:bg-slate-950/70 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto
+                                            prose-pre:text-slate-200 prose-pre:text-sm prose-pre:leading-relaxed prose-pre:whitespace-pre-wrap
+                                            prose-blockquote:border-l-4 prose-blockquote:border-amber-300 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-slate-300
+                                            prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-4 prose-ul:text-slate-300
+                                            prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-4 prose-ol:text-slate-300
+                                            prose-li:mb-1 prose-li:leading-relaxed
+                                            prose-table:border-collapse prose-table:w-full prose-table:mb-4
+                                            prose-th:border prose-th:border-white/10 prose-th:bg-white/5 prose-th:px-3 prose-th:py-2 prose-th:text-left prose-th:font-semibold prose-th:text-slate-100
+                                            prose-td:border prose-td:border-white/10 prose-td:px-3 prose-td:py-2 prose-td:text-slate-300 prose-a:text-amber-200 prose-a:mr-1"
+                                        dangerouslySetInnerHTML={{ __html: marked(formData.notes) }}
+                                    />
+                                ) : (
+                                    <div className="flex h-full items-center justify-center text-slate-400">
+                                        <div className="text-center">
+                                            <svg className="mx-auto mb-4 h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                            <p className="text-sm">Start writing to see the preview</p>
                                         </div>
                                     </div>
-
-                                    <div className="mt-3">
-                                                {leftTab === 'code' ? (
-                                                    <div className="rounded-b-xl bg-gradient-to-b from-white to-gray-50 p-4 shadow-sm">
-                                                        <textarea
-                                                            placeholder="Paste full implementation code here (preserves indentation)..."
-                                                            value={implementationCode}
-                                                            onChange={(e) => setImplementationCode(e.target.value)}
-                                                            rows={14}
-                                                            className="w-full min-h-[340px] rounded-xl border border-gray-200 bg-white px-4 py-4 text-sm font-mono leading-6 text-gray-900 shadow-inner outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-500/20 resize-y"
-                                                        />
-
-                                                        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                                            <p className="text-xs leading-5 text-gray-500">
-                                                                Paste clean, runnable code here. The AI summary uses this block to generate your notes.
-                                                            </p>
-
-                                                            <button
-                                                                type="button"
-                                                                onClick={async () => {
-                                                                    if (!implementationCode.trim()) {
-                                                                        setError('Please paste implementation code first')
-                                                                        return
-                                                                    }
-                                                                    setAiLoading(true)
-                                                                    setError(null)
-                                                                    try {
-                                                                        const result = await DSAApiService.generateAiSummary(implementationCode, formData.notes)
-                                                                        // populate notes and switch to notes tab
-                                                                        setFormData(prev => ({
-                                                                            ...prev,
-                                                                            notes: result.summary
-                                                                        }))
-                                                                        setLeftTab('notes')
-                                                                    } catch (err: any) {
-                                                                        const errorMsg = err.response?.data?.details || err.message || 'Failed to generate summary'
-                                                                        setError(`AI Summary Error: ${errorMsg}`)
-                                                                    } finally {
-                                                                        setAiLoading(false)
-                                                                    }
-                                                                }}
-                                                                disabled={aiLoading || !implementationCode.trim()}
-                                                                className="inline-flex items-center justify-center rounded-xl bg-green-500 px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-green-200 transition-all hover:bg-green-600 hover:shadow-green-300 disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-[160px]"
-                                                            >
-                                                                {aiLoading ? 'Generating...' : '✨ Generate Summary'}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <textarea
-                                                        ref={textareaRef}
-                                                        name="notes"
-                                                        value={formData.notes}
-                                                        onChange={handleInputChange}
-                                                        rows={18}
-                                                        className="notes-editor w-full px-4 py-4 focus:ring-2 focus:ring-green-500 rounded-b-md focus:outline-none resize-none font-mono text-sm leading-relaxed border-0"
-                                                        placeholder={notesTemplate}
-                                                    />
-                                                )}
-                                    </div>
-                                </div>
-                                </div>
-
-                            {/* Right Column - Live Preview */}
-                            <div className="bg-white rounded-xl border border-gray-200">
-                                <div className="p-6 border-b border-gray-200">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-1">�️ Live Preview</h3>
-                                    <p className="text-sm text-gray-600">
-                                        See how your markdown will be rendered
-                                    </p>
-                                </div>
-
-                                <div className="p-6 h-[500px] overflow-y-auto">
-                                    {formData.notes.trim() ? (
-                                        <div
-                                            className="problem-content prose prose-sm max-w-none 
-                                        prose-headings:text-gray-900 prose-headings:font-semibold
-                                        prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4
-                                        prose-strong:text-gray-900 prose-strong:font-semibold
-                                        prose-em:text-gray-700 prose-em:italic
-                                        prose-code:text-green-700 prose-code:bg-green-50 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm prose-code:font-mono
-                                        prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200 prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto
-                                        prose-pre:text-gray-800 prose-pre:text-sm prose-pre:leading-relaxed prose-pre:whitespace-pre-wrap
-                                        prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-600
-                                        prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-4 prose-ul:text-gray-700
-                                        prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-4 prose-ol:text-gray-700
-                                        prose-li:mb-1 prose-li:leading-relaxed
-                                        prose-table:border-collapse prose-table:w-full prose-table:mb-4
-                                        prose-th:border prose-th:border-gray-300 prose-th:bg-gray-50 prose-th:px-3 prose-th:py-2 prose-th:text-left prose-th:font-semibold prose-th:text-gray-900
-                                        prose-td:border prose-td:border-gray-300 prose-td:px-3 prose-td:py-2 prose-td:text-gray-700 prose-a:text-green-700 prose-a:mr-1"
-                                            dangerouslySetInnerHTML={{ __html: marked(formData.notes) }}
-                                        />
-                                    ) : (
-                                        <div className="flex items-center justify-center h-full text-gray-400">
-                                            <div className="text-center">
-                                                <svg className="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                </svg>
-                                                <p className="text-sm">Start writing to see the preview</p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
+                                )}
                             </div>
                         </div>
+                    </section>
 
-                        {/* Submit Buttons */}
-                        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                            <Link
-                                to="/dsa/problems"
-                                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                            >
-                                Cancel
-                            </Link>
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-3xl border border-white/15 bg-slate-900/55 p-5 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
+                        <Link
+                            to="/dsa/problems"
+                            className="inline-flex items-center justify-center rounded-xl border border-white/15 px-6 py-3 font-semibold text-slate-200 transition-colors hover:bg-white/5 hover:text-white"
+                        >
+                            Cancel
+                        </Link>
 
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                            >
-                                {loading ? (
-                                    <>
-                                        <svg className="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                        Adding Problem...
-                                    </>
-                                ) : (
-                                    'Add Problem'
-                                )}
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="inline-flex items-center justify-center rounded-xl bg-amber-300 px-6 py-3 font-semibold text-slate-950 shadow-lg shadow-amber-900/20 transition-all hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {loading ? (
+                                <>
+                                    <svg className="mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Adding Problem...
+                                </>
+                            ) : (
+                                'Add Problem'
+                            )}
+                        </button>
+                    </div>
+                </form>
             </main>
         </div>
     )
