@@ -10,6 +10,8 @@ import ProblemDetail from './components/ProblemDetail.tsx'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
 import { Navbar } from './components/ui/Navbar.tsx'
 import { Footer } from './components/ui/footer'
+import PrivacyPolicy from './components/PrivacyPolicy.tsx'
+import Terms from './components/Terms.tsx'
 import './App.css'
 
 interface User {
@@ -99,6 +101,8 @@ const App: React.FC = () => {
               path="/"
               element={user ? <Navigate to="/dsa" /> : <LoginPage />}
             />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<Terms />} />
             <Route
               path="/profile"
               element={user ? <ProfilePage user={user} setUser={setUser} /> : <Navigate to="/" />}
