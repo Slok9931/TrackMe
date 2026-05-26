@@ -5,7 +5,7 @@ import { DatePicker } from "./ui/date-picker";
 import { Dropdown } from "./ui/dropdown";
 import { EmptyState } from "./problems/EmptyState";
 import { ErrorState } from "./problems/ErrorState";
-import { LoadingState } from "./problems/LoadingState";
+import { LoadingState } from "./ui/loading-state";
 import { RevisionModal } from "./problems/RevisionModal";
 import { DeleteModal } from "./problems/DeleteModal";
 import { ProblemsTable } from "./problems/ProblemsTable";
@@ -236,7 +236,7 @@ const ProblemsList: React.FC = () => {
   };
 
   if (loading) {
-    return <LoadingState />;
+    return <LoadingState message='Loading problems...' />;
   }
 
   return (

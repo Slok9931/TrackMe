@@ -69,11 +69,11 @@ const Navbar: React.FC<NavbarProps> = ({ user, setUser }) => {
                 <div className="flex justify-between items-center h-16">
                     {/* Logo and Brand */}
                     <div className="flex items-center">
-                        <Link to="/dsa" className="flex items-center space-x-3 group">
+                        <Link to="/dsa" className="flex items-center -space-x-6 group">
                             <img
-                                src="/check.jpg"
+                                src="/logo.png"
                                 alt="TrackMe Logo"
-                                className="h-12 w-12 rounded-xl object-cover border border-white/20 shadow-lg"
+                                className=" h-20"
                             />
                             <div className="flex flex-col">
                                 <span className="text-xl font-bold text-amber-200 group-hover:text-amber-100 transition-colors">TrackMe</span>

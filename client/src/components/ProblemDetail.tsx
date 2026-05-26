@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import DSAApiService from '../services/dsaApi'
 import type { UserProblem } from '../services/dsaApi'
-import { LoadingState } from './problems/LoadingState'
+import { LoadingState } from './ui/loading-state'
 import ProblemEditorWorkspace from './problems/ProblemEditorWorkspace'
 
 const problemContentStyles = `
@@ -264,7 +264,7 @@ const ProblemDetail: React.FC = () => {
     }
 
     if (loading) {
-        return <LoadingState />
+        return <LoadingState message='Loading problem details...' />
     }
 
     if (error || !userProblem) {
