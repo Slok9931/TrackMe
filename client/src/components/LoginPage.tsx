@@ -22,12 +22,12 @@ const LoginPage: React.FC = () => {
       <div className="relative grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
         <div className="flex items-center justify-center px-6 py-10 sm:px-10 lg:px-14">
           <div className="w-full max-w-xl space-y-8">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/8 shadow-[0_0_0_1px_rgba(255,255,255,0.04)] backdrop-blur-md">
+            <div className="flex items-center -space-x-4">
+              <div className="flex h-20 items-center justify-center">
                 <img
-                  src="/check.jpg"
+                  src="/logo.png"
                   alt="TrackMe logo"
-                  className="h-10 w-10 rounded-full object-cover"
+                  className="h-20"
                 />
               </div>
               <div>
