@@ -38,7 +38,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user, setUser }) => {
 
     const handleLogout = async () => {
         try {
-            await apiClient.post(config.API_ENDPOINTS.AUTH.LOGOUT)
+            await apiClient.get(config.API_ENDPOINTS.AUTH.LOGOUT)
         } catch (error) {
             console.error('Logout error:', error)
         } finally {
