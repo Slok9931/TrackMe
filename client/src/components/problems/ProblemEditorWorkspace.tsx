@@ -261,7 +261,7 @@ const ProblemEditorWorkspace: React.FC<ProblemEditorWorkspaceProps> = ({
 }) => {
     const [activeTab, setActiveTab] = useState<TabKey>(defaultTab)
     const notesTextareaRef = useRef<HTMLTextAreaElement>(null)
-    const panelHeightClass = 'h-[750px]'
+    const panelHeightClass = 'h-[720px]'
     const scrollBodyClass = 'min-h-0 flex-1 overflow-y-auto'
 
     const insertSnippet = (snippet: string) => {
@@ -481,7 +481,7 @@ const ProblemEditorWorkspace: React.FC<ProblemEditorWorkspaceProps> = ({
                     {renderPreviewPanel()}
                 </div>
             ) : (
-                <div className={`mt-6 flex h-full min-h-0 flex-col rounded-2xl border border-white/10 bg-slate-950/50 p-4 shadow-inner shadow-black/10 ${panelHeightClass}`}>
+                <div className={`mt-6 flex h-[750px] min-h-0 flex-col rounded-2xl border border-white/10 bg-slate-950/50 p-4 shadow-inner shadow-black/10 ${panelHeightClass}`}>
                     <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-4">
                         {renderEditorTabs()}
                     </div>
