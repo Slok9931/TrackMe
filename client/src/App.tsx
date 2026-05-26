@@ -8,7 +8,7 @@ import ProblemsList from './components/ProblemsList.tsx'
 import AddProblem from './components/AddProblem.tsx'
 import ProblemDetail from './components/ProblemDetail.tsx'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
-import Navbar from './components/ui/Navbar.tsx'
+import { Navbar } from './components/ui/Navbar.tsx'
 import { Footer } from './components/ui/footer'
 import './App.css'
 
@@ -121,7 +121,7 @@ const App: React.FC = () => {
             />
             </Routes>
           </div>
-          <Footer />
+          {user && <Footer />}
         </div>
       </Router>
     </ErrorBoundary>
