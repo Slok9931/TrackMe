@@ -9,7 +9,7 @@ import {
     User,
     type LucideIcon,
 } from 'lucide-react'
-import { apiClient, config } from '../config/api'
+import { apiClient, config } from '../../config/api'
 
 interface User {
     _id: string

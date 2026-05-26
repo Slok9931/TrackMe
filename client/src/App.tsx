@@ -8,7 +8,8 @@ import ProblemsList from './components/ProblemsList.tsx'
 import AddProblem from './components/AddProblem.tsx'
 import ProblemDetail from './components/ProblemDetail.tsx'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
-import Navbar from './components/Navbar.tsx'
+import Navbar from './components/ui/Navbar.tsx'
+import { Footer } from './components/ui/footer'
 import './App.css'
 
 interface User {
@@ -90,9 +91,10 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <Router>
-        <div className="min-h-screen bg-[#07111f] text-slate-50">
+        <div className="min-h-screen bg-[#07111f] text-slate-50 flex flex-col">
           {user && <Navbar user={user} setUser={setUser} />}
-          <Routes>
+          <div className="flex-1">
+            <Routes>
             <Route
               path="/"
               element={user ? <Navigate to="/dsa" /> : <LoginPage />}
@@ -117,7 +119,9 @@ const App: React.FC = () => {
               path="/dsa/problems/:id"
               element={user ? <ProblemDetail /> : <Navigate to="/" />}
             />
-          </Routes>
+            </Routes>
+          </div>
+          <Footer />
         </div>
       </Router>
     </ErrorBoundary>
