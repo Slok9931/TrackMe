@@ -2,7 +2,6 @@ import { LoadingState } from './ui/loading-state'
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
-  AlertTriangle,
   BarChart3,
   Calendar,
   CalendarCheck2,
@@ -24,6 +23,7 @@ import {
 import DSAApiService from "../services/dsaApi";
 import type { UserProblem } from "../services/dsaApi";
 import { DatePicker } from './ui/date-picker'
+import { ErrorState } from './ui/error-state'
 import LineChartCard from './dashboard/charts/LineChartCard'
 import BarChartCard from './dashboard/charts/BarChartCard'
 import PieChartCard from './dashboard/charts/PieChartCard'
@@ -203,19 +203,16 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <AlertTriangle className="w-10 h-10 text-red-600 mb-4 mx-auto" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Error Loading Dashboard
-          </h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={fetchDashboardData}
-            className="px-4 py-2 bg-amber-300 text-slate-950 rounded-lg hover:bg-amber-200 transition-colors"
-          >
-            Try Again
-          </button>
+      <div className="relative min-h-screen overflow-hidden bg-[#07111f] text-slate-50">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.18),_transparent_35%),radial-gradient(circle_at_80%_20%,_rgba(16,185,129,0.15),_transparent_28%),linear-gradient(135deg,_#07111f_0%,_#0b1727_45%,_#101b2e_100%)]" />
+        <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:48px_48px]" />
+        <div className="relative flex min-h-screen items-center justify-center p-6">
+          <ErrorState
+            title="Error Loading Dashboard"
+            message={error}
+            onRetry={fetchDashboardData}
+            retryLabel="Try Again"
+          />
         </div>
       </div>
     );

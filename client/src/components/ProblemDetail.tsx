@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { marked } from 'marked'
 import {
-    AlertTriangle,
     CalendarDays,
     CheckCircle2,
     ChevronLeft,
@@ -14,8 +13,10 @@ import {
 } from 'lucide-react'
 import DSAApiService from '../services/dsaApi'
 import type { UserProblem } from '../services/dsaApi'
+import { ErrorState } from './ui/error-state'
 import { LoadingState } from './ui/loading-state'
 import ProblemEditorWorkspace from './problems/ProblemEditorWorkspace'
+import { useNavigate } from 'react-router-dom'
 
 const problemContentStyles = `
 .problem-content {
@@ -158,6 +159,7 @@ const problemContentStyles = `
 
 const ProblemDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>()
+    const navigate = useNavigate()
 
     const [userProblem, setUserProblem] = useState<UserProblem | null>(null)
     const [loading, setLoading] = useState(true)
@@ -274,24 +276,12 @@ const ProblemDetail: React.FC = () => {
                 <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:48px_48px]" />
 
                 <div className="relative flex min-h-screen items-center justify-center p-6">
-                    <div className="max-w-lg rounded-[2rem] border border-white/15 bg-slate-900/65 p-8 text-center shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
-                        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-red-300/20 bg-red-300/10 text-red-200">
-                            <AlertTriangle className="h-6 w-6" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-slate-50">Problem not found</h2>
-                        <p className="mt-3 text-sm leading-6 text-slate-400">
-                            {error || 'The requested problem could not be found.'}
-                        </p>
-                        <div className="mt-6 flex items-center justify-center">
-                            <Link
-                                to="/dsa/problems"
-                                className="inline-flex items-center gap-2 rounded-xl bg-amber-300 px-5 py-3 font-semibold text-slate-950 shadow-lg shadow-amber-900/20 transition-all hover:bg-amber-200"
-                            >
-                                <ChevronLeft className="h-4 w-4" />
-                                Back to Problems
-                            </Link>
-                        </div>
-                    </div>
+                    <ErrorState
+                        title={userProblem ? 'Problem not found' : 'Problem data unavailable'}
+                        message={error || (userProblem ? 'The requested problem could not be found.' : 'This user problem does not include a populated problem record.')}
+                        onRetry={() => navigate('/dsa/problems')}
+                        retryLabel="Back to Problems"
+                    />
                 </div>
             </div>
         )
@@ -305,24 +295,12 @@ const ProblemDetail: React.FC = () => {
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.18),_transparent_35%),radial-gradient(circle_at_80%_20%,_rgba(16,185,129,0.15),_transparent_28%),linear-gradient(135deg,_#07111f_0%,_#0b1727_45%,_#101b2e_100%)]" />
                 <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:48px_48px]" />
                 <div className="relative flex min-h-screen items-center justify-center p-6">
-                    <div className="max-w-lg rounded-[2rem] border border-white/15 bg-slate-900/65 p-8 text-center shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl">
-                        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-300/20 bg-amber-300/10 text-amber-200">
-                            <FileText className="h-6 w-6" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-slate-50">Problem data unavailable</h2>
-                        <p className="mt-3 text-sm leading-6 text-slate-400">
-                            This user problem does not include a populated problem record.
-                        </p>
-                        <div className="mt-6 flex items-center justify-center">
-                            <Link
-                                to="/dsa/problems"
-                                className="inline-flex items-center gap-2 rounded-xl bg-amber-300 px-5 py-3 font-semibold text-slate-950 shadow-lg shadow-amber-900/20 transition-all hover:bg-amber-200"
-                            >
-                                <ChevronLeft className="h-4 w-4" />
-                                Back to Problems
-                            </Link>
-                        </div>
-                    </div>
+                    <ErrorState
+                        title="Problem data unavailable"
+                        message="This user problem does not include a populated problem record."
+                        onRetry={() => navigate('/dsa/problems')}
+                        retryLabel="Back to Problems"
+                    />
                 </div>
             </div>
         )
