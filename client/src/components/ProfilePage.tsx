@@ -233,6 +233,16 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
     return Math.max(maxStreak, currentStreakCount);
   }
 
+  const difficultyArcLength = 283;
+  const easyArcLength =
+    totalSolved > 0 ? (difficultyStats.Easy / totalSolved) * difficultyArcLength : 0;
+  const mediumArcLength =
+    totalSolved > 0
+      ? (difficultyStats.Medium / totalSolved) * difficultyArcLength
+      : 0;
+  const hardArcLength =
+    totalSolved > 0 ? (difficultyStats.Hard / totalSolved) * difficultyArcLength : 0;
+
   // Activity heatmap component
   const ActivityHeatmap = () => {
     const getColor = (level: number) => {
@@ -587,55 +597,52 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
                     </defs>
                   </svg>
 
-                  {/* Invisible hover areas for better interaction */}
-                  <div className="absolute inset-0">
-                    {/* Easy hover area - Left side of semicircle */}
+                  {/* Invisible arc hit areas that match each visible segment */}
+                  <svg className="absolute inset-0 h-full w-full" viewBox="0 0 240 120">
                     {difficultyStats.Easy > 0 && (
-                      <div
-                        className="absolute cursor-pointer"
-                        style={{
-                          left: "15%",
-                          top: "15%",
-                          width: "35%",
-                          height: "70%",
-                          borderRadius: "50% 0 0 50%",
-                        }}
+                      <path
+                        d="M 30 100 A 90 90 0 0 1 210 100"
+                        stroke="transparent"
+                        strokeWidth="26"
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeDasharray={`${easyArcLength} ${difficultyArcLength}`}
                         onMouseEnter={() => setHoveredSection("easy")}
                         onMouseLeave={() => setHoveredSection(null)}
+                        style={{ pointerEvents: "stroke" }}
                       />
                     )}
 
-                    {/* Medium hover area - Top center of semicircle */}
                     {difficultyStats.Medium > 0 && (
-                      <div
-                        className="absolute cursor-pointer"
-                        style={{
-                          left: "40%",
-                          top: "10%",
-                          width: "20%",
-                          height: "40%",
-                        }}
+                      <path
+                        d="M 30 100 A 90 90 0 0 1 210 100"
+                        stroke="transparent"
+                        strokeWidth="26"
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeDasharray={`${mediumArcLength} ${difficultyArcLength}`}
+                        strokeDashoffset={`-${easyArcLength}`}
                         onMouseEnter={() => setHoveredSection("medium")}
                         onMouseLeave={() => setHoveredSection(null)}
+                        style={{ pointerEvents: "stroke" }}
                       />
                     )}
 
-                    {/* Hard hover area - Right side of semicircle */}
                     {difficultyStats.Hard > 0 && (
-                      <div
-                        className="absolute cursor-pointer"
-                        style={{
-                          right: "15%",
-                          top: "15%",
-                          width: "35%",
-                          height: "70%",
-                          borderRadius: "0 50% 50% 0",
-                        }}
+                      <path
+                        d="M 30 100 A 90 90 0 0 1 210 100"
+                        stroke="transparent"
+                        strokeWidth="26"
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeDasharray={`${hardArcLength} ${difficultyArcLength}`}
+                        strokeDashoffset={`-${easyArcLength + mediumArcLength}`}
                         onMouseEnter={() => setHoveredSection("hard")}
                         onMouseLeave={() => setHoveredSection(null)}
+                        style={{ pointerEvents: "stroke" }}
                       />
                     )}
-                  </div>
+                  </svg>
 
                   {/* Center statistics */}
                   <div className="pointer-events-none absolute inset-0 mt-4 flex flex-col items-center justify-center">
