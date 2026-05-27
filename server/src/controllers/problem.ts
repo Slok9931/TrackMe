@@ -1,18 +1,9 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import Problem, { IProblem } from "../models/Problem";
 import UserProblem, { IUserProblem } from "../models/UserProblem";
 import LeetCodeService from "../services/leetcodeService";
 import GFGService from "../services/gfgService";
-
-// Extended Request interface to include user
-interface AuthenticatedRequest extends Request {
-  user?: {
-    _id: string;
-    name: string;
-    email: string;
-    googleId: string;
-  };
-}
+import type { AuthRequest as AuthenticatedRequest } from "../types";
 
 /**
  * Add or fetch a problem by titleSlug and platform
