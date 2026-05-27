@@ -119,7 +119,6 @@ const AddProblem: React.FC = () => {
             }, 2000)
 
         } catch (error: any) {
-            console.error('Error adding problem:', error)
             if (error.response?.data?.error) {
                 setError(error.response.data.error)
             } else {

@@ -252,7 +252,6 @@ const parseSummaryJson = (rawText: string): SummarySections | null => {
 
     const jsonString = extractFirstBalancedJsonObject(cleanedText);
     if (!jsonString) {
-      console.log("parseSummaryJson: no balanced JSON object found");
       return parsePartialSummaryJson(cleanedText);
     }
 
@@ -260,13 +259,11 @@ const parseSummaryJson = (rawText: string): SummarySections | null => {
     try {
       parsed = JSON.parse(jsonString);
     } catch (err) {
-      console.log("parseSummaryJson: JSON.parse failed on extracted substring", (err as any)?.message || String(err));
       return parsePartialSummaryJson(cleanedText);
     }
 
     return pickSummarySections(parsed) || pickSummarySections(parsed?.summary) || parsePartialSummaryJson(cleanedText);
   } catch (error: any) {
-    console.log("parseSummaryJson final error:", error?.message);
     return null;
   }
 };
@@ -311,24 +308,17 @@ const parseMarkdownSummary = (rawText: string): SummarySections | null => {
 };
 
 const normalizeSummaryText = (rawText: string): string => {
-  console.log("=== Normalizing Summary ===");
-  console.log("Raw text length:", rawText.length);
-  console.log("Raw text (first 300 chars):", rawText.substring(0, 300));
   
   const jsonSections = parseSummaryJson(rawText);
   if (jsonSections) {
-    console.log("✓ Successfully parsed as JSON");
     return buildSummaryMarkdown(jsonSections);
   }
 
-  console.log("JSON parsing failed, trying Markdown parsing...");
   const markdownSections = parseMarkdownSummary(rawText);
   if (markdownSections) {
-    console.log("✓ Successfully parsed as Markdown");
     return buildSummaryMarkdown(markdownSections);
   }
 
-  console.log("Both parsers failed, using fallback...");
   const cleanedText = rawText.replace(/```json|```/gi, "").trim();
   const looksLikeJson =
     cleanedText.startsWith("{") ||
@@ -398,7 +388,6 @@ Return ONLY the JSON object, nothing else.`;
 
 const requestGeminiSummary = async (prompt: string, apiKey: string, modelName: string): Promise<string> => {
   const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${encodeURIComponent(apiKey)}`;
-  console.log("Making Gemini API call to:", url.split("?")[0]);
   const body = {
     contents: [
       {
@@ -464,11 +453,6 @@ export const generateSummary = async (req: Request, res: Response) => {
   try {
     const { implementationCode = "", notes = "" } = req.body;
 
-    console.log("=== AI Summarize Request ===");
-    console.log("Code length:", implementationCode.length);
-    console.log("GEMINI_API_KEY set:", !!GEMINI_API_KEY);
-    console.log("GEMINI_MODEL:", GEMINI_MODEL);
-
     if (!implementationCode || implementationCode.trim().length === 0) {
       return res.status(400).json({ error: "implementationCode is required" });
     }
@@ -477,34 +461,8 @@ export const generateSummary = async (req: Request, res: Response) => {
 
     // Prefer Gemini if key available
     if (GEMINI_API_KEY) {
-      // List available models first to debug
-      try {
-        const listUrl = `https://generativelanguage.googleapis.com/v1/models?key=${encodeURIComponent(GEMINI_API_KEY)}`;
-        console.log("Attempting to list available models...");
-        const listResponse = await axios.get(listUrl, { timeout: 10000 });
-        const models = listResponse.data?.models || [];
-        console.log("Available models:", models.map((m: any) => m.name).slice(0, 5));
-      } catch (listError: any) {
-        console.log("Could not list models:", listError?.response?.data?.error?.message || listError.message);
-      }
-
       // Try v1 endpoint with gemini-1.5-flash (latest stable model)
       const modelName = GEMINI_MODEL || "gemini-2.5-flash";
-      const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`;
-      console.log("Making Gemini API call to:", url.split("?")[0]);
-      const body = {
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: prompt }],
-          },
-        ],
-        generationConfig: {
-            temperature: 0,
-            topP: 0.9,
-          maxOutputTokens: 4096,
-        },
-      };
 
       try {
         const generatedText = await requestGeminiSummary(prompt, GEMINI_API_KEY, modelName);
@@ -513,15 +471,8 @@ export const generateSummary = async (req: Request, res: Response) => {
           throw new Error("Gemini response did not contain any generated text");
         }
 
-        console.log("=== Gemini Response ===");
-        console.log("Response length:", generatedText.length);
-        console.log("Response (first 500 chars):", generatedText.substring(0, 500));
-        console.log("Response includes JSON object:", generatedText.includes("{"));
-        console.log("Response includes JSON array:", generatedText.includes("["));
-
         const normalizedSummary = normalizeSummaryText(generatedText);
         if (isSummaryIncomplete(generatedText, normalizedSummary)) {
-          console.log("Gemini summary looked sparse, retrying once with stricter prompt...");
           const retryText = await requestGeminiSummary(
             buildSummaryPrompt(implementationCode, notes, true),
             GEMINI_API_KEY,
@@ -536,7 +487,6 @@ export const generateSummary = async (req: Request, res: Response) => {
           }
 
           if (OPENAI_API_KEY) {
-            console.log("Gemini output still incomplete, using OpenAI fallback...");
             const openaiText = await requestOpenAiSummary(prompt, OPENAI_API_KEY);
             const openaiNormalizedSummary = normalizeSummaryText(openaiText);
             const openaiSummaryWithImplementation = `${openaiNormalizedSummary}\n\n### Implementation\n\`\`\`\n${implementationCode}\n\`\`\``;
@@ -549,18 +499,11 @@ export const generateSummary = async (req: Request, res: Response) => {
           });
         }
         const summaryWithImplementation = `${normalizedSummary}\n\n### Implementation\n\`\`\`\n${implementationCode}\n\`\`\``;
-        console.log("Gemini response received, final summary length:", normalizedSummary.length);
         return res.json({ summary: summaryWithImplementation, rawSummary: generatedText });
       } catch (geminiError: any) {
-        console.error("Gemini API error details:", {
-          status: geminiError?.response?.status,
-          data: geminiError?.response?.data,
-          message: geminiError?.message,
-        });
         
         // If Gemini fails and OpenAI is configured, try OpenAI as fallback
         if (OPENAI_API_KEY) {
-          console.log("Gemini failed, trying OpenAI fallback...");
           // Fall through to OpenAI section below
         } else {
           throw geminiError;
@@ -584,7 +527,6 @@ export const generateSummary = async (req: Request, res: Response) => {
       error?.message ||
       "Unknown AI error";
 
-    console.error("AI generate error:", error?.response?.data || error.message || error);
     return res.status(500).json({
       error: "Failed to generate summary",
       details: providerMessage,

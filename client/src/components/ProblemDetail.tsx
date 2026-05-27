@@ -208,7 +208,6 @@ const ProblemDetail: React.FC = () => {
                         : '',
             )
         } catch (fetchError: any) {
-            console.error('Error fetching problem:', fetchError)
             setError('Failed to load problem details')
         } finally {
             setLoading(false)
@@ -234,7 +233,6 @@ const ProblemDetail: React.FC = () => {
             })
             await fetchProblemDetail()
         } catch (updateError: any) {
-            console.error('Error updating problem:', updateError)
             alert('Failed to update problem')
         } finally {
             setSaving(false)
@@ -258,7 +256,6 @@ const ProblemDetail: React.FC = () => {
             }))
             return true
         } catch (generateError: any) {
-            console.error('Error generating summary:', generateError)
             const errorMessage = generateError?.response?.data?.details || generateError?.response?.data?.error || generateError?.message || 'Failed to generate summary'
             alert(errorMessage)
             return false

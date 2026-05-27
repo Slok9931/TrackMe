@@ -49,27 +49,23 @@ const App: React.FC = () => {
       if (storedToken) {
         try {
           const tokenResponse = await apiClient.get(`/auth/token/${storedToken}`)
-          console.log('Token auth response:', tokenResponse.data)
           if (tokenResponse.data.authenticated) {
             setUser(tokenResponse.data.user)
             return
           }
         } catch (tokenError) {
-          console.log('Token auth failed, clearing token')
           localStorage.removeItem('authToken')
         }
       }
 
       // Fallback to session-based auth
       const authResponse = await apiClient.get('/auth/check')
-      console.log('Session auth response:', authResponse.data)
 
       if (authResponse.data.authenticated) {
         setUser(authResponse.data.user)
       }
     } catch (error) {
-      console.log('Auth check failed:', error)
-      console.log('User not authenticated')
+      
     } finally {
       setLoading(false)
     }

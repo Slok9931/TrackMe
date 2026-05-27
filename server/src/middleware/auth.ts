@@ -8,7 +8,6 @@ export const isAuthenticated = (
 ) => {
   // First check session-based authentication (Passport)
   if (req.isAuthenticated && req.isAuthenticated()) {
-    console.log("User authenticated via session");
     return next();
   }
 
@@ -19,7 +18,6 @@ export const isAuthenticated = (
     const user = getUserFromToken(token);
 
     if (user) {
-      console.log("User authenticated via token");
       // Attach user to request object for compatibility
       (req as any).user = user;
       return next();
@@ -31,12 +29,10 @@ export const isAuthenticated = (
   if (queryToken) {
     const user = getUserFromToken(queryToken);
     if (user) {
-      console.log("User authenticated via query token");
       (req as any).user = user;
       return next();
     }
   }
 
-  console.log("No valid authentication found");
   res.status(401).json({ message: "Unauthorized" });
 };

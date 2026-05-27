@@ -127,7 +127,6 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
       });
       setAllUserProblems(allProblemsResponse.userProblems);
     } catch (error: any) {
-      console.error("Error fetching dashboard data:", error);
       setError("Failed to load dashboard data");
     } finally {
       setLoading(false);

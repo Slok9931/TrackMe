@@ -60,7 +60,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
         setUserProblems(response.userProblems);
         generateActivityData(response.userProblems);
       } catch (error) {
-        console.error("Error fetching user problems:", error);
       } finally {
         setLoading(false);
       }

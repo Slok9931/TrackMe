@@ -45,7 +45,6 @@ class GFGService {
   static async fetchProblemDetails(titleSlug: string): Promise<GFGQuestion> {
     try {
       const url = `${this.GFG_API_BASE_URL}/${titleSlug}`;
-      console.log(`Fetching GFG problem from: ${url}`);
 
       const response = await axios.get<GFGProblemResponse>(url, {
         timeout: 10000,
@@ -62,12 +61,6 @@ class GFGService {
 
       const problem = response.data.results;
 
-      // Debug: Log the raw content to see what we're getting
-      console.log(
-        "Raw GFG problem_question:",
-        problem.problem_question.substring(0, 500) + "..."
-      );
-
       // Transform GFG response to our format
       const transformedProblem: GFGQuestion = {
         questionId: problem.id.toString(),
@@ -78,14 +71,8 @@ class GFGService {
         topicTags: this.transformTopicTags(problem.tags.topic_tags),
       };
 
-      console.log(
-        "Cleaned content:",
-        transformedProblem.content.substring(0, 500) + "..."
-      );
-
       return transformedProblem;
     } catch (error: any) {
-      console.error("Error fetching GFG problem:", error);
 
       if (error.response?.status === 404) {
         throw new Error(
@@ -143,7 +130,6 @@ class GFGService {
       case "hard":
         return "Hard";
       default:
-        console.warn(`Unknown difficulty: ${difficulty}, defaulting to Medium`);
         return "Medium";
     }
   }

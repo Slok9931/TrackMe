@@ -76,7 +76,6 @@ export const addProblem = async (
       problem,
     });
   } catch (error: any) {
-    console.error("Error in addProblem:", error);
     res.status(500).json({
       error: "Failed to fetch problem",
       details: error.message,
@@ -216,7 +215,6 @@ export const addUserProblem = async (
       userProblem,
     });
   } catch (error: any) {
-    console.error("Error in addUserProblem:", error);
     res.status(500).json({
       error: "Failed to add problem to tracking list",
       details: error.message,
@@ -337,7 +335,6 @@ export const getUserProblems = async (
       });
     }
   } catch (error: any) {
-    console.error("Error in getUserProblems:", error);
     res.status(500).json({
       error: "Failed to fetch user problems",
       details: error.message,
@@ -397,7 +394,6 @@ export const updateUserProblem = async (
       userProblem,
     });
   } catch (error: any) {
-    console.error("Error in updateUserProblem:", error);
     res.status(500).json({
       error: "Failed to update user problem",
       details: error.message,
@@ -435,7 +431,6 @@ export const deleteUserProblem = async (
       message: "User problem deleted successfully",
     });
   } catch (error: any) {
-    console.error("Error in deleteUserProblem:", error);
     res.status(500).json({
       error: "Failed to delete user problem",
       details: error.message,
@@ -486,7 +481,6 @@ export const addRevision = async (
       userProblem,
     });
   } catch (error: any) {
-    console.error("Error in addRevision:", error);
     res.status(500).json({
       error: "Failed to add revision",
       details: error.message,
@@ -545,7 +539,6 @@ export const updateRevision = async (
       res.status(404).json({ error: revisionError.message });
     }
   } catch (error: any) {
-    console.error("Error in updateRevision:", error);
     res.status(500).json({
       error: "Failed to update revision",
       details: error.message,
@@ -591,7 +584,6 @@ export const deleteRevision = async (
       userProblem,
     });
   } catch (error: any) {
-    console.error("Error in deleteRevision:", error);
     res.status(500).json({
       error: "Failed to delete revision",
       details: error.message,
@@ -664,7 +656,6 @@ export const getUserStats = async (
       stats: userStats,
     });
   } catch (error: any) {
-    console.error("Error in getUserStats:", error);
     res.status(500).json({
       error: "Failed to fetch user statistics",
       details: error.message,

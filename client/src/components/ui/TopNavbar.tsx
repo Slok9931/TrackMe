@@ -46,7 +46,6 @@ export const Navbar: React.FC<NavbarProps> = ({ user, setUser }) => {
         const response = await DSAApiService.getUserProblems({ limit: 1000 });
         setCurrentStreak(calculateCurrentStreak(response.userProblems));
       } catch (error) {
-        console.error("Failed to load navbar streak:", error);
       }
     };
 
@@ -57,7 +56,6 @@ export const Navbar: React.FC<NavbarProps> = ({ user, setUser }) => {
     try {
       await apiClient.get(config.API_ENDPOINTS.AUTH.LOGOUT);
     } catch (error) {
-      console.error("Logout error:", error);
     } finally {
       localStorage.removeItem("authToken");
       setUser(null);

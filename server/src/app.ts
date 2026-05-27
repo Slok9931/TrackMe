@@ -50,11 +50,6 @@ app.use(
 );
 // Debug middleware to log cookies
 app.use((req, res, next) => {
-  console.log("=== Request Debug ===");
-  console.log("Path:", req.path);
-  console.log("Session ID:", req.sessionID);
-  console.log("Raw Cookies:", req.headers.cookie);
-  console.log("User in session:", !!req.user);
   next();
 });
 

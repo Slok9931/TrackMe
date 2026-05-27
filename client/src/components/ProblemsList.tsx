@@ -90,7 +90,6 @@ const ProblemsList: React.FC = () => {
       setProblems(response.userProblems);
       setPagination(response.pagination);
     } catch (error: any) {
-      console.error("Error fetching problems:", error);
       setError("Failed to load problems");
     } finally {
       setLoading(false);
@@ -123,7 +122,6 @@ const ProblemsList: React.FC = () => {
         status: newStatus,
       });
     } catch (error: any) {
-      console.error("Error updating status:", error);
       // Revert optimistic update on error
       setProblems((prevProblems: UserProblem[]) =>
         prevProblems.map((problem: UserProblem) =>
@@ -169,7 +167,6 @@ const ProblemsList: React.FC = () => {
       setDeleteModalOpen(false);
       setProblemToDelete(null);
     } catch (error: any) {
-      console.error("Error deleting problem:", error);
       // Revert optimistic update on error - add the problem back
       setProblems((prevProblems: UserProblem[]) => [
         ...prevProblems,
@@ -228,7 +225,6 @@ const ProblemsList: React.FC = () => {
 
       setNewRevisionNote("");
     } catch (error: any) {
-      console.error("Error adding revision:", error);
       alert("Failed to add revision");
     } finally {
       setAddingRevision(false);

@@ -7,11 +7,6 @@ export const initializePassport = () => {
     process.env.GOOGLE_CALLBACK_URL ||
     "http://localhost:3000/api/auth/google/callback";
 
-  console.log("=== Passport Initialization ===");
-  console.log("Google Client ID:", process.env.GOOGLE_CLIENT_ID ? "✓ Set" : "✗ Missing");
-  console.log("Google Callback URL:", callbackURL);
-  console.log("Environment GOOGLE_CALLBACK_URL:", process.env.GOOGLE_CALLBACK_URL);
-
   passport.use(
     new GoogleStrategy(
       {
