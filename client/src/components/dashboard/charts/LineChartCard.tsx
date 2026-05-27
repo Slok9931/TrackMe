@@ -23,7 +23,7 @@ const LineChartCard: React.FC<LineChartCardProps> = ({ data, className }) => {
     } | null>(null)
 
     return (
-        <div className={cn('rounded-3xl border border-white/15 bg-slate-900/55 p-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl', className)}>
+        <div className={cn('flex h-full flex-col rounded-3xl border border-white/15 bg-slate-900/55 p-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl', className)}>
             <div className="mb-6 flex items-center">
                 <LineChartIcon className="mr-3 h-6 w-6 text-amber-300" />
                 <h3 className="text-xl font-bold text-white">Problems Solved Over Time</h3>

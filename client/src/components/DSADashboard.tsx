@@ -27,6 +27,7 @@ import { ErrorState } from './ui/error-state'
 import LineChartCard from './dashboard/charts/LineChartCard'
 import BarChartCard from './dashboard/charts/BarChartCard'
 import PieChartCard from './dashboard/charts/PieChartCard'
+import StreakCalendarCard from './dashboard/charts/StreakCalendarCard'
 import {
   buildDashboardChartData,
   buildDashboardDifficultyBreakdown,
@@ -359,8 +360,11 @@ const DSADashboard: React.FC<DSADashboardProps> = ({ user }) => {
 
         {/* Charts Section */}
         <div className="space-y-8 mb-10">
-          {/* Line Chart */}
-          <LineChart />
+          {/* Line Chart and Streak Calendar */}
+          <div className="grid grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)] gap-8 items-stretch">
+            <StreakCalendarCard allUserProblems={allUserProblems} />
+            <LineChart />
+          </div>
 
           {/* Bar Chart and Pie Chart */}
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
