@@ -17,6 +17,18 @@ const SUMMARY_SECTION_KEYS = [
 type SummarySectionKey = (typeof SUMMARY_SECTION_KEYS)[number];
 type SummarySections = Record<SummarySectionKey, string>;
 
+const SUMMARY_KEY_ALIASES: Record<string, SummarySectionKey> = {
+  approach: "Approach",
+  complexity: "Complexity",
+  algorithm: "Algorithm",
+  mistakes: "Mistakes(if any)",
+  mistakesifany: "Mistakes(if any)",
+  optimisation: "Optimisation",
+  optimization: "Optimisation",
+  keyinsights: "Key insights",
+  insights: "Key insights",
+};
+
 const createEmptySummarySections = (): SummarySections => ({
   Approach: "",
   Complexity: "",
@@ -25,6 +37,191 @@ const createEmptySummarySections = (): SummarySections => ({
   Optimisation: "",
   "Key insights": "",
 });
+
+const countBullets = (text: string): number => (text.match(/^[\t ]*[-*]\s+/gm) || []).length;
+
+const countNonEmptyLines = (text: string): number =>
+  text
+    .replace(/```json|```/gi, "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean).length;
+
+const isSummaryTooSparse = (rawText: string, normalizedMarkdown: string): boolean => {
+  const rawLineCount = countNonEmptyLines(rawText);
+  const bulletCount = countBullets(normalizedMarkdown);
+
+  if (rawLineCount < 8) {
+    return true;
+  }
+
+  if (bulletCount < 7) {
+    return true;
+  }
+
+  return false;
+};
+
+const normalizeSectionKey = (key: string): SummarySectionKey | null => {
+  const normalized = key.toLowerCase().replace(/[^a-z]/g, "");
+  return SUMMARY_KEY_ALIASES[normalized] || null;
+};
+
+const coerceSectionValue = (value: unknown): string => {
+  if (typeof value === "string") {
+    return value.trim().replace(/\\r?\\n/g, "\n");
+  }
+
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => (typeof item === "string" ? item.trim() : String(item)))
+      .filter(Boolean)
+      .join("\n");
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  if (value && typeof value === "object") {
+    const candidate = value as { text?: unknown; content?: unknown };
+    if (typeof candidate.text === "string") {
+      return candidate.text.trim().replace(/\\r?\\n/g, "\n");
+    }
+    if (typeof candidate.content === "string") {
+      return candidate.content.trim().replace(/\\r?\\n/g, "\n");
+    }
+  }
+
+  return "";
+};
+
+const extractFirstBalancedJsonObject = (text: string): string | null => {
+  let start = -1;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+
+    if (start === -1) {
+      if (ch === "{") {
+        start = i;
+        depth = 1;
+      }
+      continue;
+    }
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (ch === "\\") {
+        escaped = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (ch === "{") {
+      depth++;
+      continue;
+    }
+
+    if (ch === "}") {
+      depth--;
+      if (depth === 0 && start !== -1) {
+        return text.slice(start, i + 1);
+      }
+    }
+  }
+
+  return null;
+};
+
+const pickSummarySections = (candidate: unknown): SummarySections | null => {
+  if (!candidate || typeof candidate !== "object") {
+    return null;
+  }
+
+  const sections = createEmptySummarySections();
+  let found = false;
+
+  for (const [rawKey, rawValue] of Object.entries(candidate as Record<string, unknown>)) {
+    const mappedKey = normalizeSectionKey(rawKey);
+    if (!mappedKey) continue;
+
+    const textValue = coerceSectionValue(rawValue);
+    if (!textValue) continue;
+
+    sections[mappedKey] = textValue;
+    found = true;
+  }
+
+  return found ? sections : null;
+};
+
+const decodeJsonLikeString = (value: string): string => {
+  let normalized = value.trim();
+  normalized = normalized.replace(/\\r\\n/g, "\n");
+  normalized = normalized.replace(/\\n/g, "\n");
+  normalized = normalized.replace(/\\t/g, "\t");
+  normalized = normalized.replace(/\\"/g, '"');
+  normalized = normalized.replace(/\\\\/g, "\\");
+  return normalized.trim();
+};
+
+const parsePartialSummaryJson = (rawText: string): SummarySections | null => {
+  const text = rawText.replace(/```json|```/gi, "").trim();
+
+  const keyPattern = /"(Approach|Complexity|Algorithm|Mistakes\(if any\)|Mistakes|Optimisation|Optimization|Key insights)"\s*:\s*"/gi;
+  const keyMatches: Array<{ key: SummarySectionKey; keyStart: number; valueStart: number }> = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = keyPattern.exec(text)) !== null) {
+    const mapped = normalizeSectionKey(match[1]);
+    if (!mapped) continue;
+    keyMatches.push({
+      key: mapped,
+      keyStart: match.index,
+      valueStart: keyPattern.lastIndex,
+    });
+  }
+
+  if (keyMatches.length === 0) {
+    return null;
+  }
+
+  const sections = createEmptySummarySections();
+  let found = false;
+
+  for (let i = 0; i < keyMatches.length; i++) {
+    const current = keyMatches[i];
+    const next = keyMatches[i + 1];
+    const end = next ? next.keyStart : text.length;
+
+    let valueRaw = text.slice(current.valueStart, end);
+    if (next) {
+      valueRaw = valueRaw.replace(/",?\s*$/, "");
+    } else {
+      valueRaw = valueRaw.replace(/"\s*\}?\s*$/, "");
+    }
+
+    const value = decodeJsonLikeString(valueRaw);
+    if (!value) continue;
+
+    sections[current.key] = value;
+    found = true;
+  }
+
+  return found ? sections : null;
+};
 
 const buildSummaryMarkdown = (sections: SummarySections): string => {
   return SUMMARY_SECTION_KEYS.map((sectionKey) => {
@@ -40,75 +237,34 @@ const buildSummaryMarkdown = (sections: SummarySections): string => {
 
 const parseSummaryJson = (rawText: string): SummarySections | null => {
   try {
-    const cleanedText = rawText.replace(/```json|```/g, "").trim();
+    const cleanedText = rawText.replace(/```json|```/gi, "").trim();
 
     // Try direct JSON parse first (common when model returns pure JSON)
     try {
       const direct = JSON.parse(cleanedText);
-      if (direct && typeof direct === "object") {
-        const sections = createEmptySummarySections();
-        let found = false;
-        for (const k of SUMMARY_SECTION_KEYS) {
-          const v = direct[k];
-          if (typeof v === "string" && v.trim().length) {
-            sections[k] = v.trim().replace(/\\r?\\n/g, "\n");
-            found = true;
-          }
-        }
-        if (found) return sections;
+      const directSections = pickSummarySections(direct) || pickSummarySections((direct as any)?.summary);
+      if (directSections) {
+        return directSections;
       }
     } catch (e) {
       // fallthrough to brace-based extraction
     }
 
-    const start = cleanedText.indexOf("{");
-    if (start === -1) {
-      console.log("parseSummaryJson: no opening brace found");
-      return null;
+    const jsonString = extractFirstBalancedJsonObject(cleanedText);
+    if (!jsonString) {
+      console.log("parseSummaryJson: no balanced JSON object found");
+      return parsePartialSummaryJson(cleanedText);
     }
 
-    // Find matching closing brace by tracking depth to handle nested objects
-    let depth = 0;
-    let end = -1;
-    for (let i = start; i < cleanedText.length; i++) {
-      const ch = cleanedText[i];
-      if (ch === "{") depth++;
-      else if (ch === "}") {
-        depth--;
-        if (depth === 0) {
-          end = i;
-          break;
-        }
-      }
-    }
-
-    if (end === -1) {
-      console.log("parseSummaryJson: no matching closing brace found");
-      return null;
-    }
-
-    const jsonString = cleanedText.slice(start, end + 1);
     let parsed: any;
     try {
       parsed = JSON.parse(jsonString);
     } catch (err) {
       console.log("parseSummaryJson: JSON.parse failed on extracted substring", (err as any)?.message || String(err));
-      return null;
+      return parsePartialSummaryJson(cleanedText);
     }
 
-    if (!parsed || typeof parsed !== "object") return null;
-
-    const sections = createEmptySummarySections();
-    let foundAny = false;
-    for (const k of SUMMARY_SECTION_KEYS) {
-      const v = parsed[k];
-      if (typeof v === "string" && v.trim().length) {
-        sections[k] = v.trim().replace(/\\r?\\n/g, "\n");
-        foundAny = true;
-      }
-    }
-
-    return foundAny ? sections : null;
+    return pickSummarySections(parsed) || pickSummarySections(parsed?.summary) || parsePartialSummaryJson(cleanedText);
   } catch (error: any) {
     console.log("parseSummaryJson final error:", error?.message);
     return null;
@@ -123,7 +279,7 @@ const parseMarkdownSummary = (rawText: string): SummarySections | null => {
 
   const normalizeHeading = (line: string): SummarySectionKey | null => {
     const cleanedLine = line.trim().replace(/^#{1,6}\s*/, "");
-    const headingMatch = cleanedLine.match(/^(?:\d+\)\s*)?(Approach|Complexity|Algorithm|Mistakes(?:\s*\(if any\))?|Optimisation|Key insights)\s*:?$/i);
+    const headingMatch = cleanedLine.match(/^(?:\d+\)\s*)?(Approach|Complexity|Algorithm|Mistakes(?:\s*\(if any\))?|Optimisation|Optimization|Key insights)\s*:?$/i);
 
     if (!headingMatch) {
       return null;
@@ -134,7 +290,7 @@ const parseMarkdownSummary = (rawText: string): SummarySections | null => {
     if (normalized.startsWith("complexity")) return "Complexity";
     if (normalized.startsWith("algorithm")) return "Algorithm";
     if (normalized.startsWith("mistakes")) return "Mistakes(if any)";
-    if (normalized.startsWith("optimisation")) return "Optimisation";
+    if (normalized.startsWith("optimisation") || normalized.startsWith("optimization")) return "Optimisation";
     return "Key insights";
   };
 
@@ -173,27 +329,26 @@ const normalizeSummaryText = (rawText: string): string => {
   }
 
   console.log("Both parsers failed, using fallback...");
+  const cleanedText = rawText.replace(/```json|```/gi, "").trim();
+  const looksLikeJson =
+    cleanedText.startsWith("{") ||
+    cleanedText.startsWith("[") ||
+    /"(approach|complexity|algorithm|mistakes|optimisation|optimization|key insights|key_insights)"/i.test(cleanedText);
+
   const fallbackSections = createEmptySummarySections();
-  fallbackSections.Approach = rawText.trim();
+  fallbackSections.Approach = looksLikeJson
+    ? "- AI returned incomplete structured output. Please generate the summary again."
+    : cleanedText;
   return buildSummaryMarkdown(fallbackSections);
 
 };
 
-export const generateSummary = async (req: Request, res: Response) => {
-  try {
-    const { implementationCode = "", notes = "" } = req.body;
+const buildSummaryPrompt = (implementationCode: string, notes: string, strict: boolean = false): string => {
+  const tone = strict
+    ? "You failed to provide a complete, detailed JSON summary. Regenerate it with full detail."
+    : "You are an expert code reviewer. Your task is to provide a detailed code analysis in JSON format.";
 
-    console.log("=== AI Summarize Request ===");
-    console.log("Code length:", implementationCode.length);
-    console.log("GEMINI_API_KEY set:", !!GEMINI_API_KEY);
-    console.log("GEMINI_MODEL:", GEMINI_MODEL);
-
-    if (!implementationCode || implementationCode.trim().length === 0) {
-      return res.status(400).json({ error: "implementationCode is required" });
-    }
-
-    // Build a strict prompt so the model returns JSON that we can render into markdown
-    const prompt = `You are an expert code reviewer. Your task is to provide a detailed code analysis in JSON format.
+  return `${tone}
 
 CRITICAL INSTRUCTIONS:
 1. Return ONLY a valid JSON object.
@@ -201,6 +356,9 @@ CRITICAL INSTRUCTIONS:
 3. Do NOT add any extra prose, explanations, or text before or after the JSON.
 4. Ensure the JSON is complete and valid.
 5. ALL key-value pairs must be present. Do not omit any keys.
+6. Each value must contain at least 2 bullet points unless the section is genuinely not applicable.
+7. Use concrete observations from the code. Do not write generic filler like "Initialize".
+8. Do NOT include the implementation code in the summary.
 
 The JSON must have exactly these 6 keys with string values:
 - "Approach"
@@ -214,14 +372,13 @@ FORMATTING RULES for values:
 - Use bullet points: Start each point with "- "
 - Use actual line breaks between bullet points (not \\n, but real newlines)
 - Highlight important terms in bold: **term** (markdown bold format)
-- Keep content concise and specific to the implementation
+- Keep content specific to the implementation
 - For "Mistakes(if any)", write "- No obvious mistakes found." if there are no issues
-- Do NOT repeat the full code
 
 Example JSON format:
 {
   "Approach": "- First **approach** used\\n- Second **method** applied",
-  "Complexity": "- Time: **O(n)**\\n- Space: **O(1)**",
+  "Complexity": "- Time: **O(n)**\\n- Space: **O(1)",
   "Algorithm": "- Step 1: **Initialize**\\n- Step 2: **Execute**",
   "Mistakes(if any)": "- No obvious mistakes found.",
   "Optimisation": "- Could optimize using **technique**\\n- Alternative: **approach**",
@@ -237,6 +394,86 @@ Existing Notes (if any):
 ${notes}
 
 Return ONLY the JSON object, nothing else.`;
+};
+
+const requestGeminiSummary = async (prompt: string, apiKey: string, modelName: string): Promise<string> => {
+  const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  console.log("Making Gemini API call to:", url.split("?")[0]);
+  const body = {
+    contents: [
+      {
+        role: "user",
+        parts: [{ text: prompt }],
+      },
+    ],
+    generationConfig: {
+      temperature: 0,
+      topP: 0.9,
+      maxOutputTokens: 8192,
+    },
+  };
+
+  const response = await axios.post(url, body, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+    timeout: 30000,
+  });
+
+  return (
+    response.data?.candidates?.[0]?.content?.parts
+      ?.map((part: { text?: string }) => part.text || "")
+      .join("")
+      .trim() || ""
+  );
+};
+
+const requestOpenAiSummary = async (prompt: string, apiKey: string): Promise<string> => {
+  const openaiRes = await axios.post(
+    "https://api.openai.com/v1/chat/completions",
+    {
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 1200,
+      temperature: 0.2,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return openaiRes.data?.choices?.[0]?.message?.content || JSON.stringify(openaiRes.data);
+};
+
+const isSummaryIncomplete = (rawText: string, normalizedSummary: string): boolean => {
+  if (normalizedSummary.includes("AI returned incomplete structured output")) {
+    return true;
+  }
+
+  if (normalizedSummary.includes("Not provided by the model.")) {
+    return true;
+  }
+
+  return isSummaryTooSparse(rawText, normalizedSummary);
+};
+
+export const generateSummary = async (req: Request, res: Response) => {
+  try {
+    const { implementationCode = "", notes = "" } = req.body;
+
+    console.log("=== AI Summarize Request ===");
+    console.log("Code length:", implementationCode.length);
+    console.log("GEMINI_API_KEY set:", !!GEMINI_API_KEY);
+    console.log("GEMINI_MODEL:", GEMINI_MODEL);
+
+    if (!implementationCode || implementationCode.trim().length === 0) {
+      return res.status(400).json({ error: "implementationCode is required" });
+    }
+
+    const prompt = buildSummaryPrompt(implementationCode, notes);
 
     // Prefer Gemini if key available
     if (GEMINI_API_KEY) {
@@ -265,23 +502,12 @@ Return ONLY the JSON object, nothing else.`;
         generationConfig: {
             temperature: 0,
             topP: 0.9,
-            maxOutputTokens: 2048,
+          maxOutputTokens: 4096,
         },
       };
 
       try {
-        const response = await axios.post(url, body, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          timeout: 30000,
-        });
-
-        const generatedText =
-          response.data?.candidates?.[0]?.content?.parts
-            ?.map((part: { text?: string }) => part.text || "")
-            .join("")
-            .trim() || "";
+        const generatedText = await requestGeminiSummary(prompt, GEMINI_API_KEY, modelName);
 
         if (!generatedText) {
           throw new Error("Gemini response did not contain any generated text");
@@ -294,6 +520,34 @@ Return ONLY the JSON object, nothing else.`;
         console.log("Response includes JSON array:", generatedText.includes("["));
 
         const normalizedSummary = normalizeSummaryText(generatedText);
+        if (isSummaryIncomplete(generatedText, normalizedSummary)) {
+          console.log("Gemini summary looked sparse, retrying once with stricter prompt...");
+          const retryText = await requestGeminiSummary(
+            buildSummaryPrompt(implementationCode, notes, true),
+            GEMINI_API_KEY,
+            modelName
+          );
+          if (retryText) {
+            const retryNormalizedSummary = normalizeSummaryText(retryText);
+            if (!isSummaryIncomplete(retryText, retryNormalizedSummary)) {
+              const retrySummaryWithImplementation = `${retryNormalizedSummary}\n\n### Implementation\n\`\`\`\n${implementationCode}\n\`\`\``;
+              return res.json({ summary: retrySummaryWithImplementation, rawSummary: retryText });
+            }
+          }
+
+          if (OPENAI_API_KEY) {
+            console.log("Gemini output still incomplete, using OpenAI fallback...");
+            const openaiText = await requestOpenAiSummary(prompt, OPENAI_API_KEY);
+            const openaiNormalizedSummary = normalizeSummaryText(openaiText);
+            const openaiSummaryWithImplementation = `${openaiNormalizedSummary}\n\n### Implementation\n\`\`\`\n${implementationCode}\n\`\`\``;
+            return res.json({ summary: openaiSummaryWithImplementation, rawSummary: openaiText });
+          }
+
+          return res.status(500).json({
+            error: "Failed to generate complete summary",
+            details: "Gemini returned incomplete structured output and no fallback provider is configured",
+          });
+        }
         const summaryWithImplementation = `${normalizedSummary}\n\n### Implementation\n\`\`\`\n${implementationCode}\n\`\`\``;
         console.log("Gemini response received, final summary length:", normalizedSummary.length);
         return res.json({ summary: summaryWithImplementation, rawSummary: generatedText });
@@ -316,23 +570,7 @@ Return ONLY the JSON object, nothing else.`;
 
     // Fallback to OpenAI if provided (OpenAI-compatible API)
     if (OPENAI_API_KEY) {
-      const openaiRes = await axios.post(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          model: "gpt-4o-mini",
-          messages: [{ role: "user", content: prompt }],
-          max_tokens: 512,
-          temperature: 0.2,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${OPENAI_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const text = openaiRes.data?.choices?.[0]?.message?.content || JSON.stringify(openaiRes.data);
+      const text = await requestOpenAiSummary(prompt, OPENAI_API_KEY);
       const normalizedSummary = normalizeSummaryText(text);
       const summaryWithImplementation = `${normalizedSummary}\n\n### Implementation\n\`\`\`\n${implementationCode}\n\`\`\``;
       return res.json({ summary: summaryWithImplementation, rawSummary: text });
