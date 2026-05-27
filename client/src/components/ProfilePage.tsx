@@ -193,24 +193,27 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
   function calculateCurrentStreak(problems: UserProblem[]): number {
     if (problems.length === 0) return 0;
 
-    const sortedDates = problems
-      .filter((p) => p.date_solved)
-      .map((p) => new Date(p.date_solved!).toDateString())
-      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+    const dayKey = (dateValue: string | Date) => {
+      const date = new Date(dateValue);
+      return new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+      ).getTime();
+    };
 
-    const uniqueDates = [...new Set(sortedDates)];
+    const solvedDays = new Set(
+      problems
+      .filter((p) => p.date_solved)
+      .map((p) => dayKey(p.date_solved!)),
+    );
+
+    const millisecondsPerDay = 24 * 60 * 60 * 1000;
+    const todayKey = dayKey(new Date());
     let streak = 0;
 
-    for (let i = 0; i < uniqueDates.length; i++) {
-      const currentDate = new Date(uniqueDates[i]);
-      const expectedDate = new Date();
-      expectedDate.setDate(expectedDate.getDate() - i);
-
-      if (currentDate.toDateString() === expectedDate.toDateString()) {
-        streak++;
-      } else {
-        break;
-      }
+    for (let offset = 0; solvedDays.has(todayKey - offset * millisecondsPerDay); offset++) {
+      streak++;
     }
 
     return streak;

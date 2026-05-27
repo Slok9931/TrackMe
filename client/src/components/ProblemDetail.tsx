@@ -15,8 +15,10 @@ import DSAApiService from '../services/dsaApi'
 import type { UserProblem } from '../services/dsaApi'
 import { ErrorState } from './ui/error-state'
 import { LoadingState } from './ui/loading-state'
+import { DatePicker } from './ui/date-picker'
 import ProblemEditorWorkspace from './problems/ProblemEditorWorkspace'
 import { useNavigate } from 'react-router-dom'
+import { toLocalDateKey } from '../lib/utils'
 
 const problemContentStyles = `
 .problem-content {
@@ -170,6 +172,7 @@ const ProblemDetail: React.FC = () => {
         status: 'Todo' as 'Todo' | 'Completed',
         notes: '',
     })
+    const [solveDate, setSolveDate] = useState('')
     const [implementationCode, setImplementationCode] = useState('')
     const [aiLoading, setAiLoading] = useState(false)
 
@@ -197,6 +200,13 @@ const ProblemDetail: React.FC = () => {
                 status: problem.status,
                 notes: problem.notes || '',
             })
+            setSolveDate(
+                problem.date_solved
+                    ? toLocalDateKey(new Date(problem.date_solved))
+                    : problem.status === 'Completed'
+                        ? toLocalDateKey(new Date())
+                        : '',
+            )
         } catch (fetchError: any) {
             console.error('Error fetching problem:', fetchError)
             setError('Failed to load problem details')
@@ -208,9 +218,20 @@ const ProblemDetail: React.FC = () => {
     const handleUpdate = async () => {
         if (!userProblem) return
 
+        const nextStatus = solveDate ? 'Completed' : editData.status
+
+        if (nextStatus === 'Completed' && !solveDate) {
+            alert('Please select a solve date before saving')
+            return
+        }
+
         try {
             setSaving(true)
-            await DSAApiService.updateUserProblem(userProblem._id, editData)
+            await DSAApiService.updateUserProblem(userProblem._id, {
+                ...editData,
+                status: nextStatus,
+                date_solved: solveDate || undefined,
+            })
             await fetchProblemDetail()
         } catch (updateError: any) {
             console.error('Error updating problem:', updateError)
@@ -387,7 +408,7 @@ const ProblemDetail: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-3 sm:flex-row lg:flex-col lg:items-stretch lg:w-72">
+                        <div className="relative z-20 flex flex-col gap-3 sm:flex-row lg:flex-col lg:items-stretch lg:w-72">
                             {problem.problemUrl && (
                                 <a
                                     href={problem.problemUrl}
@@ -410,6 +431,24 @@ const ProblemDetail: React.FC = () => {
                                 <FileText className="h-4 w-4" />
                                 {saving ? 'Saving...' : 'Save Notes'}
                             </button>
+
+                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-300">
+                                    <CalendarDays className="h-4 w-4 text-amber-300" />
+                                    Date Solved
+                                </label>
+                                <DatePicker
+                                    value={solveDate}
+                                    onChange={setSolveDate}
+                                    placeholder="Select solve date"
+                                    wrapperClassName="w-full"
+                                    popoverClassName="z-[80]"
+                                    overlayClassName="z-[70]"
+                                />
+                                <p className="mt-2 text-xs text-slate-400">
+                                    Update the day you solved this problem, then save notes.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </section>

@@ -354,7 +354,7 @@ export const updateUserProblem = async (
 ): Promise<void> => {
   try {
     const { userProblemId } = req.params;
-    const { status, notes, problem_link } = req.body;
+    const { status, notes, problem_link, date_solved } = req.body;
     const userId = req.user?._id;
 
     if (!userId) {
@@ -385,6 +385,9 @@ export const updateUserProblem = async (
         return;
       }
       userProblem.problem_link = problem_link;
+    }
+    if (date_solved !== undefined) {
+      userProblem.date_solved = date_solved ? new Date(date_solved) : undefined;
     }
 
     await userProblem.save();

@@ -105,6 +105,7 @@ class DSAApiService {
       status?: "Todo" | "Completed";
       notes?: string;
       problem_link?: string;
+      date_solved?: string;
     }
   ): Promise<{ userProblem: UserProblem }> {
     const response = await apiClient.put(

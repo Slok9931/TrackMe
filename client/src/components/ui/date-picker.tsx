@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn, parseLocalDateKey, toLocalDateKey } from '../../lib/utils.ts'
 
@@ -26,6 +27,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     const [isOpen, setIsOpen] = useState(false)
     const [currentMonth, setCurrentMonth] = useState(new Date())
     const [selectedDate, setSelectedDate] = useState(value ? parseLocalDateKey(value) : null)
+    const wrapperRef = useRef<HTMLDivElement>(null)
+    const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({})
 
     const formatDate = (date: Date) => {
         return date.toLocaleDateString('en-US', {
@@ -78,6 +81,24 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         setIsOpen(false)
     }
 
+    const updatePopoverPosition = () => {
+        const wrapper = wrapperRef.current
+
+        if (!wrapper) return
+
+        const rect = wrapper.getBoundingClientRect()
+        const popoverWidth = Math.min(320, window.innerWidth - 16)
+        const left = Math.max(8, Math.min(rect.right - popoverWidth, window.innerWidth - popoverWidth - 8))
+        const top = rect.bottom + 8
+
+        setPopoverStyle({
+            position: 'fixed',
+            top,
+            left,
+            width: popoverWidth,
+        })
+    }
+
     useEffect(() => {
         if (value && value !== (selectedDate ? toLocalDateKey(selectedDate) : undefined)) {
             setSelectedDate(parseLocalDateKey(value))
@@ -86,8 +107,23 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         }
     }, [selectedDate, value])
 
+    useEffect(() => {
+        if (!isOpen) return
+
+        updatePopoverPosition()
+
+        const handleWindowChange = () => updatePopoverPosition()
+        window.addEventListener('resize', handleWindowChange)
+        window.addEventListener('scroll', handleWindowChange, true)
+
+        return () => {
+            window.removeEventListener('resize', handleWindowChange)
+            window.removeEventListener('scroll', handleWindowChange, true)
+        }
+    }, [isOpen])
+
     return (
-        <div className={cn('relative z-50', wrapperClassName)}>
+        <div ref={wrapperRef} className={cn('relative z-50', wrapperClassName)}>
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
@@ -105,10 +141,10 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                 <ChevronDown className={cn(`h-4 w-4 text-slate-300 transition-transform ${isOpen ? 'rotate-180' : ''}`)} />
             </button>
 
-            {isOpen && (
+            {isOpen && typeof document !== 'undefined' && createPortal(
                 <>
-                    <div className={cn('fixed inset-0 z-50', overlayClassName)} onClick={() => setIsOpen(false)} />
-                    <div className={cn('absolute right-0 z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-xl border border-white/15 bg-slate-900 p-4 shadow-[0_24px_60px_rgba(2,6,23,0.55)] backdrop-blur-xl', popoverClassName)}>
+                    <div className={cn('fixed inset-0 z-[9998]', overlayClassName)} onClick={() => setIsOpen(false)} />
+                    <div className={cn('z-[9999] rounded-xl border border-white/15 bg-slate-900 p-4 shadow-[0_24px_60px_rgba(2,6,23,0.55)] backdrop-blur-xl', popoverClassName)} style={popoverStyle}>
                         <div className="mb-4 flex items-center justify-between">
                             <button
                                 type="button"
@@ -178,7 +214,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                             </button>
                         </div>
                     </div>
-                </>
+                </>,
+                document.body,
             )}
         </div>
     )
