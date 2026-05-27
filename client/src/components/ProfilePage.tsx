@@ -72,11 +72,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
   const generateActivityData = (problems: UserProblem[]) => {
     const activityMap = new Map<string, number>();
     const today = new Date();
-    const currentYear = today.getFullYear();
 
-    // Start from January 1st of current year, end at December 31st of current year
-    const startDate = new Date(currentYear, 0, 1); // January 1st
-    const endDate = new Date(currentYear, 11, 31); // December 31st
+    // Show the trailing 1-year window ending on today.
+    const startDate = new Date(today);
+    startDate.setFullYear(today.getFullYear() - 1);
+    const endDate = new Date(today);
 
     // Initialize all days with 0 activity
     for (
