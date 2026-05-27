@@ -40,6 +40,7 @@ interface User {
   email: string;
   googleId: string;
   profilePicture?: string;
+  createdAt: string;
 }
 
 interface DSADashboardProps {

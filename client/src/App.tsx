@@ -21,6 +21,7 @@ interface User {
   email: string
   googleId: string
   profilePicture?: string
+  createdAt: string
 }
 
 const App: React.FC = () => {

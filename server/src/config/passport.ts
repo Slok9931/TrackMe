@@ -67,6 +67,7 @@ export const initializePassport = () => {
             email: user.email,
             googleId: user.googleId,
             profilePicture: user.profilePicture,
+            createdAt: user.createdAt,
           };
           done(null, userObj);
         } else {

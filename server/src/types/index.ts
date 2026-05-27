@@ -6,6 +6,7 @@ export interface User {
   email: string;
   googleId: string;
   profilePicture?: string;
+  createdAt: Date;
 }
 
 export interface AuthRequest extends Request {
@@ -20,6 +21,7 @@ declare global {
       email: string;
       googleId: string;
       profilePicture?: string;
+      createdAt: Date;
     }
   }
 }

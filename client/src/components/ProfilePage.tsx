@@ -20,6 +20,7 @@ interface User {
   email: string;
   googleId: string;
   profilePicture?: string;
+  createdAt: string;
 }
 
 interface ProfilePageProps {
@@ -143,6 +144,17 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
       ? Math.round((totalSolved / userProblems.length) * 100)
       : 0;
   const activeDays = activityData.filter((day) => day.count > 0).length;
+  const memberSinceDate = new Date(user.createdAt);
+  const memberSinceLabel = memberSinceDate.toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+  const activityBadgeLabel =
+    totalSolved === 0
+      ? "Getting Started"
+      : currentStreak > 0
+        ? `Active for ${currentStreak} day${currentStreak === 1 ? "" : "s"}`
+        : "Active Coder";
   const mostActiveDay =
     activityData.length > 0
       ? activityData.reduce(
@@ -475,11 +487,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <span className="inline-flex items-center gap-2 rounded-full border border-emerald-300/30 bg-emerald-300/10 px-3 py-1.5 text-xs font-semibold text-emerald-100">
                     <CheckCircle2 className="h-3.5 w-3.5" />
-                    Active Coder
+                    {activityBadgeLabel}
                   </span>
                   <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300">
                     <CalendarDays className="h-3.5 w-3.5 text-amber-300" />
-                    Member since {new Date().getFullYear()}
+                    Member since {memberSinceLabel}
                   </span>
                 </div>
               </div>
