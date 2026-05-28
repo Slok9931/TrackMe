@@ -8,6 +8,7 @@ import ProblemsList from './components/ProblemsList.tsx'
 import AddProblem from './components/AddProblem.tsx'
 import ProblemDetail from './components/ProblemDetail.tsx'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
+import NotFoundPage from './components/NotFoundPage.tsx'
 import { Navbar } from './components/ui/TopNavbar.tsx'
 import { Footer } from './components/ui/footer'
 import PrivacyPolicy from './components/PrivacyPolicy.tsx'
@@ -108,6 +109,7 @@ const App: React.FC = () => {
               path="/dsa/problems/:id"
               element={user ? <ProblemDetail /> : <Navigate to="/" />}
             />
+            <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </div>
           {user && <Footer />}
