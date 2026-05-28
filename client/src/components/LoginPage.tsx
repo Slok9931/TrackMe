@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card.tsx";
+import { Link } from "react-router-dom";
 
 const LoginPage: React.FC = () => {
   const handleGoogleLogin = () => {
@@ -113,7 +114,15 @@ const LoginPage: React.FC = () => {
                 </div>
 
                 <p className="text-sm leading-6 text-slate-400">
-                  By continuing, you agree to our Terms of Service and Privacy Policy.
+                  By continuing, you agree to our {" "}
+                  <Link to="/terms" className="underline underline-offset-4 hover:text-amber-300">
+                    Terms of Service
+                  </Link>
+                  {" "} and {" "}
+                  <Link to="/privacy" className="underline underline-offset-4 hover:text-amber-300">
+                    Privacy Policy
+                  </Link>
+                  .
                 </p>
               </CardContent>
             </Card>

@@ -22,6 +22,7 @@ import {
 // using shared Dropdown component from ./ui/dropdown
 
 const ProblemsList: React.FC = () => {
+  const itemsPerPage = 25;
   const [problems, setProblems] = useState<UserProblem[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,7 +77,7 @@ const ProblemsList: React.FC = () => {
 
       const params: any = {
         page: currentPage,
-        limit: 10,
+        limit: itemsPerPage,
       };
 
       if (statusFilter !== "All") params.status = statusFilter;
@@ -506,11 +507,14 @@ const ProblemsList: React.FC = () => {
               <div className="text-sm text-slate-300">
                 Showing{" "}
                 <span className="font-semibold text-slate-100">
-                  {(currentPage - 1) * 10 + 1}
+                    {(currentPage - 1) * (pagination?.itemsPerPage ?? itemsPerPage) + 1}
                 </span>{" "}
                 to{" "}
                 <span className="font-semibold text-slate-100">
-                  {Math.min(currentPage * 10, pagination.totalItems)}
+                    {Math.min(
+                      currentPage * (pagination?.itemsPerPage ?? itemsPerPage),
+                      pagination.totalItems,
+                    )}
                 </span>{" "}
                 of{" "}
                 <span className="font-semibold text-slate-100">

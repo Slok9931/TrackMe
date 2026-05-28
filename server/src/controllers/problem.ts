@@ -240,7 +240,7 @@ export const getUserProblems = async (
       dateFrom,
       dateTo,
       page = 1,
-      limit = 10,
+      limit = 25,
     } = req.query;
 
     if (!userId) {
@@ -249,7 +249,7 @@ export const getUserProblems = async (
     }
 
     const pageNumber = Math.max(Number(page) || 1, 1);
-    const limitNumber = Math.max(Number(limit) || 10, 1);
+    const limitNumber = Math.max(Number(limit) || 25, 1);
 
     // Build filter for UserProblem collection
     const userProblemFilter: any = {
