@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import DSAApiService from "../services/dsaApi";
 import type { UserProblem } from "../services/dsaApi";
 import { LoadingState } from "./ui/loading-state";
+import { calculateCurrentStreak } from "../lib/utils";
 import {
   BarChart3,
   CalendarCheck2,
@@ -187,36 +188,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
       valueClass: "text-blue-100",
     },
   ];
-
-  // Calculate streaks
-  function calculateCurrentStreak(problems: UserProblem[]): number {
-    if (problems.length === 0) return 0;
-
-    const dayKey = (dateValue: string | Date) => {
-      const date = new Date(dateValue);
-      return new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-      ).getTime();
-    };
-
-    const solvedDays = new Set(
-      problems
-      .filter((p) => p.date_solved)
-      .map((p) => dayKey(p.date_solved!)),
-    );
-
-    const millisecondsPerDay = 24 * 60 * 60 * 1000;
-    const todayKey = dayKey(new Date());
-    let streak = 0;
-
-    for (let offset = 0; solvedDays.has(todayKey - offset * millisecondsPerDay); offset++) {
-      streak++;
-    }
-
-    return streak;
-  }
 
   function calculateLongestStreak(problems: UserProblem[]): number {
     if (problems.length === 0) return 0;

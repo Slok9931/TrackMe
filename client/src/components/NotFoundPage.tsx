@@ -1,12 +1,7 @@
-import { useEffect } from 'react'
 import { ArrowLeft, Home } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 const NotFoundPage = () => {
-  useEffect(() => {
-    document.title = '404 - Page Not Found | TrackMe'
-  }, [])
-
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#07111f] text-slate-50">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.2),_transparent_32%),radial-gradient(circle_at_80%_20%,_rgba(16,185,129,0.16),_transparent_30%),linear-gradient(135deg,_#07111f_0%,_#0b1727_45%,_#101b2e_100%)]" />

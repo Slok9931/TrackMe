@@ -27,6 +27,22 @@ interface User {
 
 const appRoutes = ['/', '/privacy-policy', '/terms', '/profile', '/dsa', '/dsa/problems', '/dsa/add', '/dsa/problems/:id']
 
+const getPageTitle = (pathname: string) => {
+  const titleMap: Array<{ path: string; title: string }> = [
+    { path: '/', title: 'TrackMe - Track the problems that matter' },
+    { path: '/privacy-policy', title: 'Privacy Policy | TrackMe' },
+    { path: '/terms', title: 'Terms of Service | TrackMe' },
+    { path: '/profile', title: 'Profile | TrackMe' },
+    { path: '/dsa', title: 'Dashboard | TrackMe' },
+    { path: '/dsa/problems', title: 'Problems | TrackMe' },
+    { path: '/dsa/add', title: 'Add Problem | TrackMe' },
+    { path: '/dsa/problems/:id', title: 'Problem Details | TrackMe' },
+  ]
+
+  const matchedRoute = titleMap.find(({ path }) => matchPath({ path, end: true }, pathname))
+  return matchedRoute?.title ?? '404 - Page Not Found | TrackMe'
+}
+
 const AppShell: React.FC<{
   user: User | null
   setUser: React.Dispatch<React.SetStateAction<User | null>>
@@ -35,6 +51,10 @@ const AppShell: React.FC<{
   const location = useLocation()
 
   const isKnownRoute = appRoutes.some((path) => matchPath({ path, end: true }, location.pathname))
+
+  useEffect(() => {
+    document.title = getPageTitle(location.pathname)
+  }, [location.pathname])
 
   return (
     <div className="min-h-screen bg-[#07111f] text-slate-50 flex flex-col">

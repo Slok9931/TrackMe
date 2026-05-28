@@ -57,6 +57,35 @@ export function parseLocalDateKey(value: string) {
   return new Date(year, month - 1, day);
 }
 
+export function calculateCurrentStreak(problems: UserProblem[]): number {
+  if (problems.length === 0) return 0;
+
+  const solvedDays = new Set(
+    problems
+      .filter((problem) => problem.status === "Completed" && problem.date_solved)
+      .map((problem) => toLocalDateKey(new Date(problem.date_solved!))),
+  );
+
+  const today = new Date();
+  const todayKey = toLocalDateKey(today);
+  const hasSolvedToday = solvedDays.has(todayKey);
+  const referenceDate = hasSolvedToday
+    ? new Date(today)
+    : new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+
+  let streak = 0;
+
+  for (
+    let cursor = referenceDate;
+    solvedDays.has(toLocalDateKey(cursor));
+    cursor.setDate(cursor.getDate() - 1)
+  ) {
+    streak++;
+  }
+
+  return streak;
+}
+
 export function getDashboardDateRange(
   selectedDateRange: DashboardDateRange,
   customStartDate: string,

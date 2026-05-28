@@ -11,7 +11,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { apiClient, config } from "../../config/api";
-import DSAApiService, { type UserProblem } from "../../services/dsaApi";
+import DSAApiService from "../../services/dsaApi";
+import { calculateCurrentStreak } from "../../lib/utils";
 
 interface User {
   _id: string;
@@ -84,39 +85,6 @@ export const Navbar: React.FC<NavbarProps> = ({ user, setUser }) => {
     { path: "/dsa/problems", label: "Problems", icon: Puzzle },
     { path: "/dsa/add", label: "Add Problem", icon: PlusCircle },
   ];
-
-  function calculateCurrentStreak(problems: UserProblem[]): number {
-    if (problems.length === 0) return 0;
-
-    const dayKey = (dateValue: string | Date) => {
-      const date = new Date(dateValue);
-      return new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-      ).getTime();
-    };
-
-    const solvedDays = new Set(
-      problems
-        .filter((problem) => problem.status === "Completed" && problem.date_solved)
-        .map((problem) => dayKey(problem.date_solved!)),
-    );
-
-    const today = new Date();
-    const todayKey = dayKey(today);
-    const hasSolvedToday = solvedDays.has(todayKey);
-    const referenceDate = hasSolvedToday
-      ? new Date(today)
-      : new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
-    let streak = 0;
-
-    for (let cursor = referenceDate; solvedDays.has(dayKey(cursor)); cursor.setDate(cursor.getDate() - 1)) {
-      streak++;
-    }
-
-    return streak;
-  }
 
   return (
     <nav className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/70 backdrop-blur-xl shadow-[0_12px_40px_rgba(2,6,23,0.5)]">
