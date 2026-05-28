@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { CalendarDays, Flame } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, Flame } from 'lucide-react'
 import { cn, toLocalDateKey } from '../../../lib/utils.ts'
 import type { UserProblem } from '../../../services/dsaApi'
 
@@ -16,10 +16,18 @@ const formatMonthLabel = (date: Date) =>
         year: 'numeric',
     })
 
+const getMonthDate = (referenceDate: Date, monthOffset: number) =>
+    new Date(referenceDate.getFullYear(), referenceDate.getMonth() + monthOffset, 1)
+
 const StreakCalendarCard: React.FC<StreakCalendarCardProps> = ({ allUserProblems, className }) => {
-    const currentMonth = new Date()
-    const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
-    const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0)
+    const today = new Date()
+    const [selectedMonthOffset, setSelectedMonthOffset] = React.useState(0)
+    const selectedMonth = useMemo(
+        () => getMonthDate(today, selectedMonthOffset),
+        [selectedMonthOffset, today],
+    )
+    const monthStart = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1)
+    const monthEnd = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0)
 
     const { cells, solvedDates } = useMemo(() => {
         const solvedDatesSet = new Set(
@@ -37,21 +45,18 @@ const StreakCalendarCard: React.FC<StreakCalendarCardProps> = ({ allUserProblems
         }
 
         for (let day = 1; day <= daysInMonth; day += 1) {
-            const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day)
+            const date = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), day)
             monthCells.push({ date, key: toLocalDateKey(date) })
         }
 
-        const solvedCount = monthCells.reduce((count, cell) => {
-            if (!cell.date) return count
-            return solvedDatesSet.has(cell.key) ? count + 1 : count
-        }, 0)
-
         return {
             cells: monthCells,
-            solvedDaysInMonth: solvedCount,
             solvedDates: solvedDatesSet,
         }
-    }, [allUserProblems, currentMonth.getMonth(), currentMonth.getFullYear(), monthEnd, monthStart])
+    }, [allUserProblems, monthEnd, monthStart, selectedMonth])
+
+    const goToPreviousMonth = () => setSelectedMonthOffset((current) => current - 1)
+    const goToNextMonth = () => setSelectedMonthOffset((current) => current + 1)
 
     return (
         <div className={cn('flex h-full flex-col rounded-3xl border border-white/15 bg-slate-900/55 p-6 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl', className)}>
@@ -65,10 +70,28 @@ const StreakCalendarCard: React.FC<StreakCalendarCardProps> = ({ allUserProblems
                         <p className="text-sm text-slate-400">Solved days this month</p>
                     </div>
                 </div>
+                <div className="flex items-center gap-3">
+                    <button
+                        type="button"
+                        onClick={goToPreviousMonth}
+                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-200 transition-all hover:bg-white/10 hover:text-white"
+                        aria-label="Previous month"
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={goToNextMonth}
+                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-200 transition-all hover:bg-white/10 hover:text-white"
+                        aria-label="Next month"
+                    >
+                        <ChevronRight className="h-4 w-4" />
+                    </button>
+                </div>
             </div>
 
             <div className="mb-4 flex items-center justify-between">
-                <p className="text-base font-semibold text-slate-100">{formatMonthLabel(currentMonth)}</p>
+                <p className="text-base font-semibold text-slate-100">{formatMonthLabel(selectedMonth)}</p>
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300">
                     <Flame className="h-4 w-4 text-orange-400" />
                     Solved day
@@ -90,7 +113,7 @@ const StreakCalendarCard: React.FC<StreakCalendarCardProps> = ({ allUserProblems
                     }
 
                     const isSolved = solvedDates.has(cell.key)
-                    const isToday = cell.key === toLocalDateKey(new Date())
+                    const isToday = cell.key === toLocalDateKey(today)
 
                     return (
                         <div
