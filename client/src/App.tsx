@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, matchPath, useLocation } from 'react-router-dom'
 import { apiClient } from './config/api'
 import LoginPage from './components/LoginPage.tsx'
 import ProfilePage from './components/ProfilePage.tsx'
@@ -23,6 +23,26 @@ interface User {
   googleId: string
   profilePicture?: string
   createdAt: string
+}
+
+const appRoutes = ['/', '/privacy-policy', '/terms', '/profile', '/dsa', '/dsa/problems', '/dsa/add', '/dsa/problems/:id']
+
+const AppShell: React.FC<{
+  user: User | null
+  setUser: React.Dispatch<React.SetStateAction<User | null>>
+  children: React.ReactNode
+}> = ({ user, setUser, children }) => {
+  const location = useLocation()
+
+  const isKnownRoute = appRoutes.some((path) => matchPath({ path, end: true }, location.pathname))
+
+  return (
+    <div className="min-h-screen bg-[#07111f] text-slate-50 flex flex-col">
+      {user && isKnownRoute && <Navbar user={user} setUser={setUser} />}
+      <div className="flex-1">{children}</div>
+      {user && isKnownRoute && <Footer />}
+    </div>
+  )
 }
 
 const App: React.FC = () => {
@@ -79,10 +99,8 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <Router>
-        <div className="min-h-screen bg-[#07111f] text-slate-50 flex flex-col">
-          {user && <Navbar user={user} setUser={setUser} />}
-          <div className="flex-1">
-            <Routes>
+        <AppShell user={user} setUser={setUser}>
+          <Routes>
             <Route
               path="/"
               element={user ? <Navigate to="/dsa" /> : <LoginPage />}
@@ -110,10 +128,8 @@ const App: React.FC = () => {
               element={user ? <ProblemDetail /> : <Navigate to="/" />}
             />
             <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </div>
-          {user && <Footer />}
-        </div>
+          </Routes>
+        </AppShell>
       </Router>
     </ErrorBoundary>
   )
