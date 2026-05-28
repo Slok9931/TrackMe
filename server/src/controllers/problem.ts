@@ -1,4 +1,5 @@
 import { Response } from "express";
+import mongoose from "mongoose";
 import Problem, { IProblem } from "../models/Problem";
 import UserProblem, { IUserProblem } from "../models/UserProblem";
 import LeetCodeService from "../services/leetcodeService";
@@ -247,93 +248,81 @@ export const getUserProblems = async (
       return;
     }
 
+    const pageNumber = Math.max(Number(page) || 1, 1);
+    const limitNumber = Math.max(Number(limit) || 10, 1);
+
     // Build filter for UserProblem collection
-    const filter: any = { userId };
-    if (status) filter.status = status;
+    const userProblemFilter: any = {
+      userId: new mongoose.Types.ObjectId(String(userId)),
+    };
+    if (status) userProblemFilter.status = status;
 
     // Add date range filter for date_solved
     if (dateFrom || dateTo) {
-      filter.date_solved = {};
+      userProblemFilter.date_solved = {};
       if (dateFrom) {
         // Parse date and set to start of day in UTC
         const fromDate = new Date(dateFrom as string);
         fromDate.setUTCHours(0, 0, 0, 0);
-        filter.date_solved.$gte = fromDate;
+        userProblemFilter.date_solved.$gte = fromDate;
       }
       if (dateTo) {
         // Parse date and set to end of day in UTC
         const toDate = new Date(dateTo as string);
         toDate.setUTCHours(23, 59, 59, 999);
-        filter.date_solved.$lte = toDate;
+        userProblemFilter.date_solved.$lte = toDate;
       }
     }
 
-    // Calculate pagination
-    const skip = (Number(page) - 1) * Number(limit);
-
-    // Build population match criteria for Problem collection
-    const populateMatch: any = {};
-    if (difficulty) populateMatch.difficulty = difficulty;
-    if (platform) populateMatch.platform = platform;
+    const problemFilter: any = {};
+    if (difficulty) problemFilter["problemId.difficulty"] = difficulty;
+    if (platform) problemFilter["problemId.platform"] = platform;
     if (search) {
-      populateMatch.title = { $regex: search, $options: "i" };
+      problemFilter["problemId.title"] = {
+        $regex: String(search),
+        $options: "i",
+      };
     }
 
-    // Query with population and filtering
-    let query = UserProblem.find(filter)
-      .populate({
-        path: "problemId",
-        match:
-          Object.keys(populateMatch).length > 0 ? populateMatch : undefined,
-        select:
-          "questionId title titleSlug difficulty platform topicTags problemUrl content",
-      })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(Number(limit));
-
-    const userProblems = await query.exec();
-
-    // Filter out null populated problems (in case of difficulty/search filter)
-    const filteredProblems = userProblems.filter((up) => up.problemId !== null);
-
-    // For accurate pagination count, we need to consider all filters
-    let totalQuery = UserProblem.find(filter);
-
-    // If we have problem-level filters (difficulty, search), we need to join and count differently
-    if (difficulty || search) {
-      const allProblems = await UserProblem.find(filter).populate({
-        path: "problemId",
-        match: populateMatch,
-        select: "_id",
-      });
-      const filteredCount = allProblems.filter(
-        (up) => up.problemId !== null
-      ).length;
-
-      res.status(200).json({
-        userProblems: filteredProblems,
-        pagination: {
-          currentPage: Number(page),
-          totalPages: Math.ceil(filteredCount / Number(limit)),
-          totalItems: filteredCount,
-          itemsPerPage: Number(limit),
+    const skip = (pageNumber - 1) * limitNumber;
+    const aggregationPipeline: any[] = [
+      { $match: userProblemFilter },
+      { $sort: { createdAt: -1 } },
+      {
+        $lookup: {
+          from: Problem.collection.name,
+          localField: "problemId",
+          foreignField: "_id",
+          as: "problemId",
         },
-      });
-    } else {
-      // Simple count for UserProblem filters only
-      const total = await UserProblem.countDocuments(filter);
+      },
+      { $unwind: "$problemId" },
+    ];
 
-      res.status(200).json({
-        userProblems: filteredProblems,
-        pagination: {
-          currentPage: Number(page),
-          totalPages: Math.ceil(total / Number(limit)),
-          totalItems: total,
-          itemsPerPage: Number(limit),
-        },
-      });
+    if (Object.keys(problemFilter).length > 0) {
+      aggregationPipeline.push({ $match: problemFilter });
     }
+
+    aggregationPipeline.push({
+      $facet: {
+        userProblems: [{ $skip: skip }, { $limit: limitNumber }],
+        totalCount: [{ $count: "count" }],
+      },
+    });
+
+    const [result] = await UserProblem.aggregate(aggregationPipeline);
+    const filteredProblems = result?.userProblems || [];
+    const totalItems = result?.totalCount?.[0]?.count || 0;
+
+    res.status(200).json({
+      userProblems: filteredProblems,
+      pagination: {
+        currentPage: pageNumber,
+        totalPages: Math.ceil(totalItems / limitNumber),
+        totalItems,
+        itemsPerPage: limitNumber,
+      },
+    });
   } catch (error: any) {
     res.status(500).json({
       error: "Failed to fetch user problems",
