@@ -41,16 +41,28 @@ export const Navbar: React.FC<NavbarProps> = ({ user, setUser }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let isActive = true;
+
     const loadCurrentStreak = async () => {
       try {
         const response = await DSAApiService.getUserProblems({ limit: 1000 });
-        setCurrentStreak(calculateCurrentStreak(response.userProblems));
+        if (isActive) {
+          setCurrentStreak(calculateCurrentStreak(response.userProblems));
+        }
       } catch (error) {
       }
     };
 
     void loadCurrentStreak();
-  }, []);
+    const intervalId = window.setInterval(() => {
+      void loadCurrentStreak();
+    }, 30000);
+
+    return () => {
+      isActive = false;
+      window.clearInterval(intervalId);
+    };
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     try {
@@ -91,11 +103,15 @@ export const Navbar: React.FC<NavbarProps> = ({ user, setUser }) => {
         .map((problem) => dayKey(problem.date_solved!)),
     );
 
-    const millisecondsPerDay = 24 * 60 * 60 * 1000;
-    const todayKey = dayKey(new Date());
+    const today = new Date();
+    const todayKey = dayKey(today);
+    const hasSolvedToday = solvedDays.has(todayKey);
+    const referenceDate = hasSolvedToday
+      ? new Date(today)
+      : new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
     let streak = 0;
 
-    for (let offset = 0; solvedDays.has(todayKey - offset * millisecondsPerDay); offset++) {
+    for (let cursor = referenceDate; solvedDays.has(dayKey(cursor)); cursor.setDate(cursor.getDate() - 1)) {
       streak++;
     }
 
