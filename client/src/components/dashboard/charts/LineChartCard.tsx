@@ -1,6 +1,10 @@
-import React, { useState } from 'react'
+import React, { useMemo } from 'react'
+import ReactECharts from 'echarts-for-react'
+import * as echarts from 'echarts'
 import { LineChart as LineChartIcon } from 'lucide-react'
 import { cn, type DashboardChartDataPoint } from '../../../lib/utils.ts'
+
+type EChartsOption = echarts.EChartsOption
 
 interface LineChartCardProps {
     data: DashboardChartDataPoint[]
@@ -8,19 +12,107 @@ interface LineChartCardProps {
 }
 
 const LineChartCard: React.FC<LineChartCardProps> = ({ data, className }) => {
-    const maxValue = Math.max(...data.map((point) => point.problems), 1)
-    const chartHeight = 260
-    const chartWidth = 760
-    const leftPadding = 52
-    const rightPadding = 24
-    const topPadding = 20
-    const innerWidth = chartWidth - leftPadding - rightPadding
-    const [hoveredPoint, setHoveredPoint] = useState<{
-        x: number
-        y: number
-        problems: number
-        date: string
-    } | null>(null)
+    const xAxisData = useMemo(() => data.map((point) => point.date), [data])
+    const solvedData = useMemo(() => data.map((point) => point.problems), [data])
+
+    const option = useMemo<EChartsOption>(
+        () => ({
+            animationDuration: 700,
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: '#0f172a',
+                borderColor: '#334155',
+                borderWidth: 1,
+                textStyle: {
+                    color: '#f8fafc',
+                },
+                formatter: (params) => {
+                    const points = (Array.isArray(params) ? params : [params]) as unknown as Array<{
+                        axisValueLabel?: string
+                        marker?: string
+                        value?: number
+                    }>
+                    const point = points[0]
+                    return `${point.axisValueLabel ?? ''}<br/>${point.marker ?? ''} Solved: ${point.value ?? 0}`
+                },
+            },
+            xAxis: {
+                type: 'category',
+                data: xAxisData,
+                axisLine: {
+                    lineStyle: {
+                        color: '#475569',
+                    },
+                },
+                axisLabel: {
+                    color: '#94a3b8',
+                    formatter: (value: string) => {
+                        const date = new Date(value)
+                        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                    },
+                },
+                splitLine: {
+                    show: false,
+                },
+            },
+            yAxis: {
+                type: 'value',
+                axisLine: {
+                    lineStyle: {
+                        color: '#475569',
+                    },
+                },
+                axisTick: {
+                    show: false,
+                },
+                splitLine: {
+                    lineStyle: {
+                        color: 'rgba(148,163,184,0.12)',
+                    },
+                },
+                axisLabel: {
+                    color: '#94a3b8',
+                },
+            },
+            grid: {
+                top: 18,
+                left: 34,
+                right: 14,
+                bottom: 34,
+            },
+            series: [
+                {
+                    name: 'Solved',
+                    type: 'line',
+                    smooth: true,
+                    symbol: 'circle',
+                    symbolSize: 7,
+                    sampling: 'average',
+                    data: solvedData,
+                    itemStyle: {
+                        color: '#fbbf24',
+                    },
+                    lineStyle: {
+                        width: 3,
+                        color: '#fbbf24',
+                    },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            {
+                                offset: 0,
+                                color: 'rgba(251,191,36,0.45)',
+                            },
+                            {
+                                offset: 1,
+                                color: 'rgba(251,191,36,0.06)',
+                            },
+                        ]),
+                    },
+                },
+            ],
+        }),
+        [solvedData, xAxisData],
+    )
 
     return (
         <div className={cn('flex h-full flex-col rounded-3xl border border-white/15 bg-slate-900/55 p-8 shadow-[0_20px_50px_rgba(2,6,23,0.55)] backdrop-blur-xl', className)}>
@@ -28,111 +120,14 @@ const LineChartCard: React.FC<LineChartCardProps> = ({ data, className }) => {
                 <LineChartIcon className="mr-3 h-6 w-6 text-amber-300" />
                 <h3 className="text-xl font-bold text-white">Problems Solved Over Time</h3>
             </div>
-            <div className="relative overflow-x-auto" style={{ height: chartHeight + 46 }}>
-                <svg
-                    width="100%"
-                    height={chartHeight + 40}
-                    viewBox={`0 0 ${chartWidth} ${chartHeight + 40}`}
-                    preserveAspectRatio="none"
-                    className="overflow-visible"
-                >
-                    {[0, 0.25, 0.5, 0.75, 1].map((ratio) => (
-                        <line
-                            key={ratio}
-                            x1={leftPadding}
-                            y1={topPadding + ratio * chartHeight}
-                            x2={chartWidth - rightPadding}
-                            y2={topPadding + ratio * chartHeight}
-                            stroke="#334155"
-                            strokeWidth="1"
-                        />
-                    ))}
-
-                    {[0, 0.25, 0.5, 0.75, 1].map((ratio) => (
-                        <text
-                            key={ratio}
-                            x={leftPadding - 12}
-                            y={topPadding + 6 + ratio * chartHeight}
-                            textAnchor="end"
-                            fontSize="12"
-                            fill="#94a3b8"
-                        >
-                            {Math.round((1 - ratio) * maxValue)}
-                        </text>
-                    ))}
-
-                    {data.length > 1 && (
-                        <polyline
-                            points={data
-                                .map(
-                                    (point, index) =>
-                                        `${leftPadding + (index / (data.length - 1)) * innerWidth},${topPadding + chartHeight - (point.problems / maxValue) * chartHeight}`,
-                                )
-                                .join(' ')}
-                            fill="none"
-                            stroke="#fbbf24"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        />
-                    )}
-
-                    {data.map((point, index) => (
-                        <circle
-                            key={point.date}
-                            cx={leftPadding + (index / Math.max(data.length - 1, 1)) * innerWidth}
-                            cy={topPadding + chartHeight - (point.problems / maxValue) * chartHeight}
-                            r="4"
-                            fill="#fbbf24"
-                            className="cursor-pointer transition-all hover:r-6"
-                            onMouseEnter={() => {
-                                setHoveredPoint({
-                                    x: leftPadding + (index / Math.max(data.length - 1, 1)) * innerWidth,
-                                    y: topPadding + chartHeight - (point.problems / maxValue) * chartHeight,
-                                    problems: point.problems,
-                                    date: point.date,
-                                })
-                            }}
-                            onMouseLeave={() => setHoveredPoint(null)}
-                        />
-                    ))}
-
-                    {hoveredPoint && (
-                        <g pointerEvents="none">
-                            <rect
-                                x={Math.min(Math.max(hoveredPoint.x - 84, leftPadding), chartWidth - 170)}
-                                y={Math.max(hoveredPoint.y - 52, 8)}
-                                width="160"
-                                height="40"
-                                rx="10"
-                                fill="#0f172a"
-                                stroke="#fbbf24"
-                                strokeWidth="1"
-                                opacity="0.95"
-                            />
-                            <text
-                                x={Math.min(Math.max(hoveredPoint.x - 74, leftPadding + 8), chartWidth - 160)}
-                                y={Math.max(hoveredPoint.y - 34, 24)}
-                                fontSize="11"
-                                fill="#f8fafc"
-                            >
-                                {`Solved: ${hoveredPoint.problems}`}
-                            </text>
-                            <text
-                                x={Math.min(Math.max(hoveredPoint.x - 74, leftPadding + 8), chartWidth - 160)}
-                                y={Math.max(hoveredPoint.y - 20, 38)}
-                                fontSize="10"
-                                fill="#cbd5e1"
-                            >
-                                {new Date(hoveredPoint.date).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric',
-                                })}
-                            </text>
-                        </g>
-                    )}
-                </svg>
+            <div className="relative overflow-x-auto">
+                <ReactECharts
+                    option={option}
+                    style={{ height: 330, width: '100%' }}
+                    opts={{ renderer: 'canvas' }}
+                    notMerge
+                    lazyUpdate
+                />
             </div>
         </div>
     )
