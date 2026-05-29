@@ -235,13 +235,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
         case 0:
           return "bg-slate-800";
         case 1:
-          return "bg-emerald-900";
+          return "bg-amber-700";
         case 2:
-          return "bg-emerald-800";
+          return "bg-amber-600";
         case 3:
-          return "bg-emerald-600";
+          return "bg-amber-500";
         case 4:
-          return "bg-emerald-400";
+          return "bg-amber-300";
         default:
           return "bg-slate-800";
       }
