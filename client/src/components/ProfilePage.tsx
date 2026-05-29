@@ -74,9 +74,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
     const activityMap = new Map<string, number>();
     const today = new Date();
 
-    // Show the trailing 1-year window ending on today.
+    // Show the trailing 11-month window ending on today.
     const startDate = new Date(today);
-    startDate.setFullYear(today.getFullYear() - 1);
+    startDate.setMonth(today.getMonth() - 10, 1);
     const endDate = new Date(today);
 
     // Initialize all days with 0 activity
@@ -235,9 +235,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
         case 0:
           return "bg-slate-800";
         case 1:
-          return "bg-emerald-950";
-        case 2:
           return "bg-emerald-900";
+        case 2:
+          return "bg-emerald-800";
         case 3:
           return "bg-emerald-600";
         case 4:
@@ -247,158 +247,125 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
       }
     };
 
-    // Create a 2D grid: 7 rows (days of week) x ~53 columns (weeks)
-    const createWeeklyGrid = () => {
+    const toDateKey = (date: Date) => date.toISOString().split("T")[0];
+
+    const activityLookup = new Map(
+      activityData.map((day) => [day.date, day] as const),
+    );
+
+    const monthBlocks = (() => {
       if (activityData.length === 0) return [];
 
-      const grid: (DayActivity | null)[][] = Array.from(
-        { length: 7 },
-        () => [],
-      );
-      const startDate = new Date(activityData[0].date);
-      const startDayOfWeek = startDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+      const rangeStart = new Date(activityData[0].date);
+      const rangeEnd = new Date(activityData[activityData.length - 1].date);
+      const blocks: Array<{
+        key: string;
+        label: string;
+        columns: (DayActivity | null)[][];
+      }> = [];
 
-      // Fill the first week with null values before the start date
-      for (let i = 0; i < startDayOfWeek; i++) {
-        grid[i].push(null);
+      const cursor = new Date(rangeStart.getFullYear(), rangeStart.getMonth(), 1);
+
+      while (cursor <= rangeEnd) {
+        const monthStartCalendar = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
+        const monthEndCalendar = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0);
+
+        const monthStart =
+          monthStartCalendar < rangeStart ? new Date(rangeStart) : monthStartCalendar;
+
+        const monthEnd =
+          monthEndCalendar > rangeEnd ? new Date(rangeEnd) : monthEndCalendar;
+
+        const daysInMonth =
+          Math.floor((monthEnd.getTime() - monthStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        const firstDayOfWeek = monthStart.getDay();
+        const totalCells = firstDayOfWeek + daysInMonth;
+        const columnCount = Math.ceil(totalCells / 7);
+
+        const columns: (DayActivity | null)[][] = Array.from(
+          { length: columnCount },
+          () => Array.from({ length: 7 }, () => null),
+        );
+
+        for (let dayOffset = 0; dayOffset < daysInMonth; dayOffset++) {
+          const currentDate = new Date(monthStart);
+          currentDate.setDate(monthStart.getDate() + dayOffset);
+
+          const gridIndex = firstDayOfWeek + dayOffset;
+          const columnIndex = Math.floor(gridIndex / 7);
+          const rowIndex = gridIndex % 7;
+          columns[columnIndex][rowIndex] =
+            activityLookup.get(toDateKey(currentDate)) ?? null;
+        }
+
+        blocks.push({
+          key: `${monthStart.getFullYear()}-${monthStart.getMonth()}`,
+          label: monthStart.toLocaleDateString("en-US", { month: "short" }),
+          columns,
+        });
+
+        cursor.setMonth(cursor.getMonth() + 1, 1);
       }
 
-      // Fill the grid with activity data
-      activityData.forEach((day, index) => {
-        const dayOfWeek = (startDayOfWeek + index) % 7;
-        grid[dayOfWeek].push(day);
-      });
+      return blocks;
+    })();
 
-      // Ensure all rows have the same length by padding with nulls
-      const maxLength = Math.max(...grid.map((row) => row.length));
-      grid.forEach((row) => {
-        while (row.length < maxLength) {
-          row.push(null);
-        }
-      });
-
-      return grid;
-    };
-
-    const weeklyGrid = createWeeklyGrid();
     const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const weekCount = weeklyGrid[0]?.length || 0;
-
-    // Generate month labels
-    const getMonthLabels = () => {
-      if (activityData.length === 0) return [];
-
-      const labels: { month: string; position: number }[] = [];
-      const seenMonths = new Set<number>();
-
-      for (let week = 0; week < (weeklyGrid[0]?.length || 0); week++) {
-        // Find the first Sunday (or first available day) in this week
-        let dayInWeek = null;
-        for (let day = 0; day < 7; day++) {
-          if (weeklyGrid[day] && weeklyGrid[day][week]) {
-            dayInWeek = weeklyGrid[day][week];
-            break;
-          }
-        }
-
-        if (dayInWeek) {
-          const date = new Date(dayInWeek.date);
-          const monthIndex = date.getMonth(); // 0-11 (Jan-Dec)
-          const monthName = date.toLocaleDateString("en-US", {
-            month: "short",
-          });
-
-          // Add month label at the beginning of each month
-          if (!seenMonths.has(monthIndex) && date.getDate() <= 7) {
-            labels.push({
-              month: monthName,
-              position: week,
-            });
-            seenMonths.add(monthIndex);
-          }
-        }
-      }
-
-      // Return labels in the order they appear in the grid (by position)
-      return labels.sort((a, b) => a.position - b.position);
-    };
-
-    const monthLabels = getMonthLabels();
 
     return (
       <div className="space-y-4 text-slate-300">
-        {/* Month labels */}
-        <div
-          className="relative ml-16 w-full"
-          style={{
-            height: "24px",
-          }}
-        >
-          {monthLabels.map((label, index) => (
-            <span
-              key={index}
-              className="absolute text-sm font-medium text-slate-400"
-              style={{ left: `${weekCount > 0 ? (label.position / weekCount) * 100 : 0}%` }}
-            >
-              {label.month}
-            </span>
-          ))}
-        </div>
-
-        {/* Heatmap grid */}
-        <div className="flex w-full items-start">
-          {/* Day labels */}
-          <div className="mr-4 mt-4 flex h-[150px] flex-col justify-between">
+        <div className="flex w-full items-start gap-4 overflow-x-hidden pb-1">
+          <div className="mr-2 mt-3 flex h-[132px] flex-col justify-between">
             {dayLabels.map((day, index) => (
               <span
                 key={index}
-                className="text-sm font-medium leading-none text-slate-400"
+                className="text-[11px] font-medium leading-none text-slate-400 sm:text-sm"
               >
                 {day}
               </span>
             ))}
           </div>
 
-          {/* Activity squares */}
-          <div className="min-w-0 flex-1 overflow-x-hidden p-2">
-            <div
-              className="grid w-full gap-x-[3px]"
-              style={{
-                gridTemplateColumns: `repeat(${weekCount}, minmax(0, 1fr))`,
-              }}
-            >
-              {weeklyGrid[0] &&
-                weeklyGrid[0].map((_, weekIndex) => (
-                  <div key={weekIndex} className="flex flex-col items-stretch gap-y-[3px]">
-                    {weeklyGrid.map((dayRow, dayIndex) => (
-                      <div
-                        key={`${weekIndex}-${dayIndex}`}
-                        className={`aspect-square w-full cursor-pointer rounded-sm transition-all duration-200 hover:scale-110 hover:ring-2 hover:ring-emerald-400 ${
-                          dayRow[weekIndex]
-                            ? getColor(dayRow[weekIndex]!.level)
-                            : "bg-slate-800"
-                        }`}
-                        title={
-                          dayRow[weekIndex]
-                            ? `${dayRow[weekIndex]!.date}: ${dayRow[weekIndex]!.count} problem(s) solved`
-                            : ""
-                        }
-                      />
-                    ))}
-                  </div>
-                ))}
-            </div>
+          <div className="mt-4 flex flex-nowrap items-start gap-3 sm:gap-4">
+            {monthBlocks.map((month) => (
+              <div key={month.key} className="flex shrink-0 flex-col items-center">
+                <div className="flex items-start sm:gap-1">
+                  {month.columns.map((column, columnIndex) => (
+                    <div key={columnIndex} className="flex flex-col gap-1">
+                      {column.map((dayEntry, dayIndex) => (
+                        <div
+                          key={`${month.key}-${columnIndex}-${dayIndex}`}
+                          className={`h-2.5 w-2.5 rounded-[0.25rem] transition-all duration-200 hover:scale-110 hover:ring-1 hover:ring-emerald-400 sm:h-3 sm:w-3 lg:h-4 lg:w-4 ${
+                            dayEntry
+                              ? getColor(dayEntry.level)
+                              : "invisible bg-transparent pointer-events-none"
+                          }`}
+                          title={
+                            dayEntry
+                              ? `${dayEntry.date}: ${dayEntry.count} problem(s) solved`
+                              : ""
+                          }
+                        />
+                      ))}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-3 text-[11px] font-medium text-slate-400 sm:text-sm">
+                  {month.label}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="ml-16 mt-4 flex items-center justify-between text-sm text-slate-400">
+        <div className="ml-16 mt-4 flex items-center justify-between text-[11px] text-slate-400 sm:text-sm">
           <span className="font-medium">Less</span>
           <div className="flex space-x-1">
             {[0, 1, 2, 3, 4].map((level) => (
               <div
                 key={level}
-                className={`w-4 h-4 rounded-sm ${getColor(level)}`}
+                className={`h-2.5 w-2.5 rounded-[3px] sm:h-3 sm:w-3 lg:h-4 lg:w-4 ${getColor(level)}`}
               />
             ))}
           </div>
@@ -740,7 +707,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
               </div>
             </div>
 
-            <div className="mt-5 overflow-x-hidden rounded-2xl border border-white/10 bg-slate-950/50 p-4">
+            <div className="mt-5 overflow-x-visible rounded-2xl border border-white/10 bg-slate-950/50 p-4">
               <ActivityHeatmap />
             </div>
           </section>
