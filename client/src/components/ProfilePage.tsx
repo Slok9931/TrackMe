@@ -335,7 +335,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
                       {column.map((dayEntry, dayIndex) => (
                         <div
                           key={`${month.key}-${columnIndex}-${dayIndex}`}
-                          className={`h-2.5 w-2.5 rounded-[0.25rem] transition-all duration-200 hover:scale-110 hover:ring-1 hover:ring-emerald-400 sm:h-3 sm:w-3 lg:h-4 lg:w-4 ${
+                          className={`h-2.5 w-2.5 rounded-[0.25rem] transition-all duration-200 cursor-pointer hover:scale-110 hover:ring-1 hover:ring-emerald-400 sm:h-3 sm:w-3 lg:h-4 lg:w-4 ${
                             dayEntry
                               ? getColor(dayEntry.level)
                               : "invisible bg-transparent pointer-events-none"
