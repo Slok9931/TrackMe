@@ -315,7 +315,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
     return (
       <div className="space-y-4 text-slate-300">
         <div className="flex w-full items-start gap-4 overflow-x-hidden pb-1">
-          <div className="mr-2 mt-3 flex h-[132px] flex-col justify-between">
+          <div className="mt-3 flex h-[132px] flex-col justify-between">
             {dayLabels.map((day, index) => (
               <span
                 key={index}
